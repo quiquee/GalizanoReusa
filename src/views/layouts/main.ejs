@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= title %> | Galizano Reusa</title>
+  <link rel="icon" type="image/jpeg" href="/images/GalizanoReusa-Icon.jpeg">
+  <link rel="apple-touch-icon" href="/images/GalizanoReusa-Icon.jpeg">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -25,12 +27,13 @@
     body { font-family: 'Inter', sans-serif; }
   </style>
 </head>
-<body class="min-h-screen bg-gradient-to-b from-sky-50 to-arena flex flex-col">
+<body class="min-h-screen bg-gradient-to-b from-sky-50 to-arena flex flex-col overflow-x-hidden">
   <!-- Navbar -->
   <nav class="bg-white/90 backdrop-blur shadow-sm sticky top-0 z-50">
     <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
       <a href="/" class="flex items-center gap-2 text-mar-oscuro font-bold text-xl">
-        🌊 Galizano Reusa
+        <img src="/images/GalizanoReusa-Icon.jpeg" alt="Galizano Reusa" class="w-8 h-8 rounded-full object-cover">
+        Galizano Reusa
       </a>
       <div class="flex items-center gap-4 text-sm">
         <% if (user) { %>
