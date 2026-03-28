@@ -9,6 +9,9 @@ const expressLayouts = require('express-ejs-layouts');
 
 const app = express();
 
+// Trust proxy (needed behind reverse proxy / X-Forwarded-For)
+app.set('trust proxy', 1);
+
 // ─── Seguridad ───
 app.use(helmet({
   contentSecurityPolicy: {
@@ -65,6 +68,11 @@ app.use(session({
 
 // ─── Flash messages ───
 app.use(flash());
+
+// ─── Passport OAuth ───
+const passport = require('./config/passport');
+app.use(passport.initialize());
+app.use(passport.session());
 
 // ─── Template engine ───
 app.set('view engine', 'ejs');
@@ -135,6 +143,11 @@ app.use('/o', landingRoutes);
 // Home
 app.get('/', (req, res) => {
   res.render('home', { title: 'Galizano Reusa' });
+});
+
+// Protección de datos
+app.get('/privacidad', (req, res) => {
+  res.render('privacidad', { title: 'Protección de Datos' });
 });
 
 // ─── 404 ───

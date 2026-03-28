@@ -15,12 +15,16 @@ datasource db {
 model User {
   id            String   @id @default(uuid())
   email         String   @unique
-  passwordHash  String
-  role          String   // 'cliente' | 'ofertante'
+  passwordHash  String?  // Null para usuarios OAuth-only
+  role          String   // 'cliente' | 'ofertante' | 'admin'
   nombre        String
   direccion     String?
   dni           String?
   emailVerified Boolean  @default(false)
+  // OAuth
+  googleId      String?  @unique
+  facebookId    String?  @unique
+  avatarUrl     String?
   // Ofertante: datos bancarios (enmascarados en público)
   stripeAccountId String? // Stripe Connect account para liquidaciones
   bankIban        String? // IBAN enmascarado en UI

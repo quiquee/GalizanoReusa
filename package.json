@@ -11,7 +11,12 @@
     "db:seed": "node prisma/seed.js",
     "db:studio": "npx prisma studio"
   },
-  "keywords": ["circular-economy", "qr-rental", "beach", "galizano"],
+  "keywords": [
+    "circular-economy",
+    "qr-rental",
+    "beach",
+    "galizano"
+  ],
   "license": "MIT",
   "dependencies": {
     "@prisma/client": "^5.22.0",
@@ -27,6 +32,9 @@
     "express-validator": "^7.2.0",
     "helmet": "^8.0.0",
     "multer": "^1.4.5-lts.1",
+    "passport": "^0.7.0",
+    "passport-facebook": "^3.0.0",
+    "passport-google-oauth20": "^2.0.0",
     "qrcode": "^1.5.4",
     "stripe": "^17.2.0",
     "uuid": "^10.0.0"

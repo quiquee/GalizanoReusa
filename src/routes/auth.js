@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const { body, validationResult } = require('express-validator');
 const prisma = require('../config/database');
+const passport = require('../config/passport');
 
 const SALT_ROUNDS = 12;
 
@@ -24,7 +25,7 @@ router.post('/login', [
 
   try {
     const user = await prisma.user.findUnique({ where: { email: req.body.email } });
-    if (!user || !(await bcrypt.compare(req.body.password, user.passwordHash))) {
+    if (!user || !user.passwordHash || !(await bcrypt.compare(req.body.password, user.passwordHash))) {
       req.flash('error', 'Email o contraseña incorrectos.');
       return res.redirect('/auth/login');
     }
@@ -210,5 +211,38 @@ router.get('/logout', (req, res) => {
     res.redirect('/');
   });
 });
+
+// ─── Helper: set session after OAuth ───
+function loginOAuthUser(req, res, user) {
+  req.session.user = {
+    id: user.id,
+    email: user.email,
+    nombre: user.nombre,
+    role: user.role,
+    emailVerified: user.emailVerified,
+  };
+  req.flash('success', `¡Bienvenido/a, ${user.nombre}!`);
+  return res.redirect(['ofertante', 'admin'].includes(user.role) ? '/dashboard' : '/');
+}
+
+// ─── Google OAuth ───
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+router.get('/google/callback',
+  passport.authenticate('google', { failureRedirect: '/auth/login', failureFlash: 'Error al iniciar sesión con Google.' }),
+  (req, res) => {
+    loginOAuthUser(req, res, req.user);
+  }
+);
+
+// ─── Facebook OAuth ───
+router.get('/facebook', passport.authenticate('facebook', { scope: ['email'] }));
+
+router.get('/facebook/callback',
+  passport.authenticate('facebook', { failureRedirect: '/auth/login', failureFlash: 'Error al iniciar sesión con Facebook.' }),
+  (req, res) => {
+    loginOAuthUser(req, res, req.user);
+  }
+);
 
 module.exports = router;
