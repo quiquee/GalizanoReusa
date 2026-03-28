@@ -1,0 +1,132 @@
+// This is your Prisma schema file
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Módulo 1: Gestión de Usuarios ───
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  passwordHash  String
+  role          String   // 'cliente' | 'ofertante'
+  nombre        String
+  direccion     String?
+  dni           String?
+  emailVerified Boolean  @default(false)
+  // Ofertante: datos bancarios (enmascarados en público)
+  stripeAccountId String? // Stripe Connect account para liquidaciones
+  bankIban        String? // IBAN enmascarado en UI
+  // Estado
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relaciones
+  items         Item[]        @relation("OwnerItems")
+  transactions  Transaction[] @relation("ClientTransactions")
+  incidents     Incident[]    @relation("ReportedIncidents")
+}
+
+// ─── Módulo 2: Gestión de Inventario / Catálogo ───
+
+model Item {
+  id            String   @id @default(uuid())
+  ownerId       String
+  owner         User     @relation("OwnerItems", fields: [ownerId], references: [id])
+
+  titulo        String
+  descripcion   String
+  fotos         String   // JSON array de rutas de imagen
+
+  // Modelo de negocio
+  tipoTransaccion String // 'venta' | 'alquiler_medio_dia' | 'alquiler_dia' | 'ambos_alquiler' | 'todos'
+  precioVenta       Float?
+  precioMedioDia    Float?
+  precioDiaEntero   Float?
+  importeFianza     Float  // Obligatorio para gestión de riesgos
+
+  // QR
+  qrCode        String?  // Data URL o ruta del QR generado
+  slug          String   @unique // URL-friendly identifier
+
+  activo        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relaciones
+  transactions  Transaction[]
+}
+
+// ─── Módulo 4 & 5: Transacciones y Auditoría ───
+
+model Transaction {
+  id              String   @id @default(uuid())
+
+  itemId          String
+  item            Item     @relation(fields: [itemId], references: [id])
+
+  // Cliente (puede ser null si es invitado)
+  clientId        String?
+  client          User?    @relation("ClientTransactions", fields: [clientId], references: [id])
+
+  // Datos invitado (si no registrado)
+  guestEmail      String?
+
+  tipo            String   // 'venta' | 'alquiler_medio_dia' | 'alquiler_dia'
+  importePago     Float    // Importe del alquiler/venta
+  importeFianza   Float    @default(0) // 0 si usuario verificado
+
+  // Stripe
+  stripePaymentIntentId String?  // Payment Intent del pago principal
+  stripeFianzaIntentId  String?  // Payment Intent de la fianza (hold)
+
+  // Estado del flujo
+  estado          String   @default("pendiente") // 'pendiente' | 'pagado' | 'en_uso' | 'devuelto' | 'cerrado' | 'incidencia'
+
+  // Auditoría de devolución
+  fechaInicio     DateTime @default(now())
+  fechaFin        DateTime? // Fecha prevista de devolución
+  fechaDevolucion DateTime? // Fecha real de devolución/check-in
+  fianzaDevuelta  Boolean  @default(false)
+  fianzaBloqueada Boolean  @default(false)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  incidents       Incident[]
+}
+
+// ─── Módulo 5: Gestión de Incidencias ───
+
+model Incident {
+  id              String   @id @default(uuid())
+  transactionId   String
+  transaction     Transaction @relation(fields: [transactionId], references: [id])
+
+  reportedById    String
+  reportedBy      User     @relation("ReportedIncidents", fields: [reportedById], references: [id])
+
+  tipo            String   // 'no_devuelto' | 'rotura' | 'otro'
+  descripcion     String
+  evidenciaFotos  String?  // JSON array
+
+  estado          String   @default("abierta") // 'abierta' | 'resuelta'
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ─── Sesiones (para express-session con Prisma) ───
+
+model Session {
+  id        String   @id
+  sid       String   @unique
+  data      String
+  expiresAt DateTime
+}

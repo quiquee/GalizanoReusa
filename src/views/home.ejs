@@ -1,0 +1,92 @@
+<section class="text-center py-12">
+  <h1 class="text-4xl font-bold text-mar-oscuro mb-4">
+    🌊 Galizano Reusa
+  </h1>
+  <p class="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
+    Economía circular en la playa. Alquila o compra objetos de uso compartido 
+    escaneando un simple código QR.
+  </p>
+ 
+  <div class="grid gap-6 mt-12 <%= user ? 'md:grid-cols-2' : 'md:grid-cols-3' %>">
+    <!-- Para Ofertantes -->
+    <div class="bg-white rounded-2xl shadow-md p-6 text-left">
+      <div class="text-3xl mb-3">📦</div>
+      <h3 class="font-semibold text-lg text-mar-oscuro mb-2">Comparte tu objeto</h3>
+      <p class="text-gray-600 text-sm mb-4">
+        Sube fotos, fija un precio de alquiler o venta, y coloca el QR junto al objeto en la playa o el parking.
+      </p>
+      <% if (user && (user.role === 'ofertante' || user.role === 'admin')) { %>
+        <a href="/items/crear" class="text-mar font-medium hover:underline text-sm">
+          Añadir objeto →
+        </a>
+      <% } else if (user && user.role === 'cliente') { %>
+        <a href="/auth/registro-ofertante" class="text-mar font-medium hover:underline text-sm">
+          Convertirme en ofertante →
+        </a>
+      <% } else { %>
+        <a href="/auth/registro-ofertante" class="text-mar font-medium hover:underline text-sm">
+          Registrarse como ofertante →
+        </a>
+      <% } %>
+    </div>
+
+    <!-- Para Clientes -->
+    <div class="bg-white rounded-2xl shadow-md p-6 text-left">
+      <div class="text-3xl mb-3">📱</div>
+      <h3 class="font-semibold text-lg text-mar-oscuro mb-2">Escanea y usa</h3>
+      <p class="text-gray-600 text-sm mb-4">
+        Escanea el QR con tu móvil, elige la tarifa, paga de forma segura y disfruta del objeto.
+      </p>
+      <% if (user) { %>
+        <a href="/catalogo" class="text-mar font-medium hover:underline text-sm">
+          Ver objetos disponibles →
+        </a>
+      <% } else { %>
+        <a href="/auth/registro-cliente" class="text-mar font-medium hover:underline text-sm">
+          Registrarse (sin fianza) →
+        </a>
+      <% } %>
+    </div>
+
+    <% if (!user) { %>
+    <!-- Sin registro (solo para visitantes) -->
+    <div class="bg-white rounded-2xl shadow-md p-6 text-left">
+      <div class="text-3xl mb-3">⚡</div>
+      <h3 class="font-semibold text-lg text-mar-oscuro mb-2">Uso inmediato</h3>
+      <p class="text-gray-600 text-sm mb-4">
+        ¿No quieres registrarte? Escanea el QR y paga directamente. Se te cobrará una fianza reembolsable.
+      </p>
+      <a href="/catalogo" class="text-mar font-medium hover:underline text-sm">
+        Ver objetos disponibles →
+      </a>
+    </div>
+    <% } %>
+  </div>
+</section>
+
+<!-- Cómo funciona -->
+<section class="mt-16">
+  <h2 class="text-2xl font-bold text-mar-oscuro text-center mb-8">¿Cómo funciona?</h2>
+  <div class="grid md:grid-cols-4 gap-4">
+    <div class="text-center">
+      <div class="bg-mar/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3 text-2xl">1</div>
+      <h4 class="font-medium text-sm">Escanea el QR</h4>
+      <p class="text-xs text-gray-500 mt-1">Abre la cámara y apunta al código QR del objeto</p>
+    </div>
+    <div class="text-center">
+      <div class="bg-mar/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3 text-2xl">2</div>
+      <h4 class="font-medium text-sm">Elige tarifa</h4>
+      <p class="text-xs text-gray-500 mt-1">Medio día, día entero o compra</p>
+    </div>
+    <div class="text-center">
+      <div class="bg-mar/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3 text-2xl">3</div>
+      <h4 class="font-medium text-sm">Paga seguro</h4>
+      <p class="text-xs text-gray-500 mt-1">Pago con tarjeta vía Stripe</p>
+    </div>
+    <div class="text-center">
+      <div class="bg-mar/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3 text-2xl">4</div>
+      <h4 class="font-medium text-sm">Disfruta y devuelve</h4>
+      <p class="text-xs text-gray-500 mt-1">Déjalo donde lo encontraste al terminar</p>
+    </div>
+  </div>
+</section>

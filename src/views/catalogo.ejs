@@ -1,0 +1,44 @@
+<h1 class="text-2xl font-bold text-mar-oscuro mb-2">Objetos Disponibles</h1>
+<p class="text-sm text-gray-500 mb-6">Explora los objetos que puedes alquilar o comprar. También puedes escanear directamente el QR en la playa.</p>
+
+<% if (items.length === 0) { %>
+  <div class="bg-white rounded-xl shadow p-8 text-center text-gray-400">
+    <p class="text-4xl mb-3">🏖️</p>
+    <p>No hay objetos disponibles en este momento.</p>
+  </div>
+<% } else { %>
+  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+    <% items.forEach(function(item) { %>
+      <a href="/o/<%= item.slug %>" class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-lg transition group">
+        <% if (item.fotosList.length > 0) { %>
+          <img src="<%= item.fotosList[0] %>" alt="<%= item.titulo %>"
+            class="w-full h-40 object-cover group-hover:scale-105 transition duration-300">
+        <% } else { %>
+          <div class="w-full h-40 bg-gray-100 flex items-center justify-center text-4xl">📦</div>
+        <% } %>
+        <div class="p-4">
+          <h3 class="font-semibold text-mar-oscuro group-hover:text-mar transition"><%= item.titulo %></h3>
+          <p class="text-xs text-gray-500 mt-1 line-clamp-2"><%= item.descripcion %></p>
+
+          <div class="flex flex-wrap gap-2 mt-3">
+            <% if (item.precioMedioDia) { %>
+              <span class="bg-sky-50 text-mar text-xs px-2 py-0.5 rounded-full font-medium">
+                Medio día: <%= item.precioMedioDia.toFixed(2) %> €
+              </span>
+            <% } %>
+            <% if (item.precioDiaEntero) { %>
+              <span class="bg-sky-50 text-mar text-xs px-2 py-0.5 rounded-full font-medium">
+                Día: <%= item.precioDiaEntero.toFixed(2) %> €
+              </span>
+            <% } %>
+            <% if (item.precioVenta) { %>
+              <span class="bg-green-50 text-verde text-xs px-2 py-0.5 rounded-full font-medium">
+                Comprar: <%= item.precioVenta.toFixed(2) %> €
+              </span>
+            <% } %>
+          </div>
+        </div>
+      </a>
+    <% }); %>
+  </div>
+<% } %>

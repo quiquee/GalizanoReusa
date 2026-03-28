@@ -1,0 +1,68 @@
+Como analista de sistemas, el diseño de la aplicación web Galizano Reusa debe estructurarse en módulos funcionales que soporten la lógica de negocio de la economía circular
+, garantizando transacciones seguras, gestión de inventario descentralizado y control de riesgos (daños o robos)
+.
+A continuación, se detalla la arquitectura funcional de la aplicación web y las instrucciones de uso para los usuarios.
+Especificación de Funcionalidades (Visión de Analista de Sistemas)
+1. Módulo de Gestión de Usuarios y Autenticación (Identity Access Management)
+Registro de Clientes (Usuarios que disponen del objeto): El sistema debe permitir la creación de cuentas mediante la validación de correo electrónico. Debe capturar datos personales obligatorios: Nombre, Dirección y DNI
+. La base de datos asignará un flag de "Usuario Verificado" que actúa como regla de negocio para eximir al usuario del pago de fianza
+.
+Registro de Ofertantes (Propietarios): Requiere un alta específica que incluya la vinculación de una cuenta bancaria destino para liquidar los ingresos generados
+. El sistema debe enmascarar la identidad de este usuario de cara al público para garantizar un servicio completamente anónimo
+.
+Modo Invitado (Usuarios no registrados): El sistema debe permitir el flujo de transacción para usuarios anónimos, forzando por regla de negocio el cobro automático de la fianza definida por el ofertante
+.
+2. Módulo de Gestión de Inventario y Catálogo (CRUD de Artículos)
+Creación de activos: Interfaz para que el ofertante dé de alta un objeto (ej. tablas de surf, gafas de bucear, sombrillas)
+. Debe permitir la carga de una o varias fotografías y la entrada de texto para la descripción
+.
+Configuración de Modelo de Negocio: El sistema debe ofrecer selectores paramétricos para definir el tipo de transacción permitida por objeto: "Solo venta", "Pago por uso de medio día" o "Pago por uso de un día entero"
+.
+Gestión de Riesgos (Fianza): Campo numérico obligatorio donde el ofertante define el importe de la fianza
+.
+3. Módulo de Interfaz Física/Digital (Motor QR)
+Generador y Enrutador QR: El sistema debe generar una URL única por cada objeto dado de alta y asociarla a un código QR
+. Cuando el código QR es escaneado por la cámara de un smartphone, el sistema debe enrutar al usuario a la Landing Page específica del objeto, mostrando dinámicamente la descripción y las tarifas vigentes
+.
+4. Módulo de Pasarela de Pagos (Integración API)
+Motor transaccional: Integración directa con la API de Stripe para procesar los cobros
+.
+Retención de fondos (Fianzas): El sistema debe ser capaz de autorizar y retener temporalmente el importe de la fianza en la tarjeta del cliente no registrado, separando este importe del coste del alquiler
+.
+5. Módulo de Auditoría y Devoluciones (Flujo de Cierre)
+Confirmación de estado: Una funcionalidad de "Check-in" temporal. La devolución de la fianza no debe ejecutarse de forma automática al momento de la entrega, sino que debe tener un retardo programado hasta el día siguiente
+.
+Gestión de incidencias: Interfaz que permita al ofertante reportar si un artículo no ha sido devuelto o si presenta roturas, lo que disparará un trigger en el sistema para bloquear la devolución de la fianza y transferirla al propietario
+.
+
+--------------------------------------------------------------------------------
+Manual de Instrucciones de Uso de la App Web
+La aplicación está diseñada para ser intuitiva tanto para quien aporta objetos como para quien los utiliza en la playa o parking
+.
+👤 Instrucciones para el Ofertante (Quien pone a disposición el objeto)
+Regístrate en la plataforma: Crea tu cuenta e introduce tus datos bancarios. Esto es imprescindible para que podamos ingresarte el dinero a través de Stripe
+. Tu identidad siempre será anónima para los demás
+.
+Sube tu objeto: Toca el botón de "Añadir objeto". Sube una o varias fotos del artículo (palas, balones, tablas, etc.) y escribe una breve descripción
+.
+Configura el precio y la fianza: Elige si quieres vender el objeto o alquilarlo. Si es alquiler, marca el precio por "medio día" o "un día entero". Es obligatorio fijar una fianza para proteger tu objeto en caso de usuarios no registrados
+.
+Coloca el objeto: Imprime o asocia el código QR generado por la app y colócalo junto o pegado al objeto en el espacio público designado (ej. a pie de playa o en el parking)
+.
+Revisa tus devoluciones: Al día siguiente de un alquiler, revisa que tu objeto está de vuelta y en buenas condiciones. Si todo está correcto, el sistema devolverá la fianza al cliente; si lo han roto o robado, podrás notificarlo en la app para quedarte con la fianza
+.
+🏖️ Instrucciones para el Cliente (Quien usa el objeto)
+Escanea el código QR: Cuando veas un objeto que necesites en la playa (una sombrilla, palas, etc.), simplemente abre la cámara de tu móvil y escanea el código QR que tiene pegado
+.
+Elige tu tarifa: Se abrirá una página web mostrándote la descripción y los precios. Elige si quieres usarlo medio día, un día entero, o comprarlo
+.
+Decide si quieres registrarte:
+Opción A (Recomendada): Crea una cuenta con tu Nombre, Dirección, DNI y verifica tu email. Si haces esto, podrás llevarte el objeto sin pagar fianza
+.
+Opción B: Continúa sin registrarte. En este caso, el sistema te cobrará el alquiler más la fianza fijada por el dueño
+.
+Paga de forma segura: Introduce los datos de tu tarjeta. El pago se procesará de forma segura a través de Stripe
+.
+Disfruta y devuelve: Usa el objeto durante el tiempo pagado y, al terminar, déjalo exactamente en el lugar donde lo encontraste
+. Si dejaste fianza, se te devolverá al día siguiente tras comprobar que el artículo está en perfectas condiciones
+.

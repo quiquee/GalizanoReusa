@@ -1,0 +1,114 @@
+<h1 class="text-2xl font-bold text-mar-oscuro mb-2">Devoluciones</h1>
+<p class="text-sm text-gray-500 mb-6">Revisa las devoluciones de tus objetos alquilados. La fianza se libera al día siguiente si todo está correcto.</p>
+
+<a href="/dashboard" class="text-sm text-mar hover:underline mb-4 inline-block">← Volver al panel</a>
+
+<% if (pendientes.length === 0) { %>
+  <div class="bg-white rounded-xl shadow p-8 text-center text-gray-400">
+    <p class="text-4xl mb-3">✅</p>
+    <p>No hay devoluciones pendientes.</p>
+  </div>
+<% } else { %>
+  <div class="space-y-4">
+    <% pendientes.forEach(function(txn) { %>
+      <div class="bg-white rounded-xl shadow p-5">
+        <div class="flex items-start justify-between">
+          <div>
+            <h3 class="font-semibold text-mar-oscuro"><%= txn.item.titulo %></h3>
+            <p class="text-xs text-gray-500 mt-1">
+              Tipo: <span class="capitalize"><%= txn.tipo.replace(/_/g, ' ') %></span> &mdash;
+              Pago: <%= txn.importePago.toFixed(2) %> € &mdash;
+              Fianza: <%= txn.importeFianza.toFixed(2) %> €
+            </p>
+            <p class="text-xs text-gray-400 mt-1">
+              Cliente: <%= txn.client ? txn.client.nombre : 'Invitado' %> &mdash;
+              Inicio: <%= txn.fechaInicio.toLocaleDateString('es-ES') %>
+              <% if (txn.fechaFin) { %>
+                &mdash; Fin previsto: <%= txn.fechaFin.toLocaleDateString('es-ES') %>
+              <% } %>
+            </p>
+          </div>
+          <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium
+            <%= txn.estado === 'en_uso' ? 'bg-amber-100 text-amber-700' :
+               txn.estado === 'devuelto' ? 'bg-green-100 text-green-700' :
+               'bg-gray-100 text-gray-700' %>">
+            <%= txn.estado %>
+          </span>
+        </div>
+
+        <div class="mt-4 flex flex-wrap gap-2">
+          <% if (txn.estado === 'en_uso') { %>
+            <!-- Check-in: confirmar devolución -->
+            <form method="POST" action="/dashboard/confirmar-devolucion/<%= txn.id %>">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button type="submit" class="bg-green-100 text-green-700 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-green-200 transition">
+                ✅ Confirmar devolución
+              </button>
+            </form>
+          <% } %>
+
+          <% if (txn.estado === 'devuelto' && txn.importeFianza > 0 && !txn.fianzaDevuelta && !txn.fianzaBloqueada) { %>
+            <!-- Liberar fianza -->
+            <form method="POST" action="/dashboard/liberar-fianza/<%= txn.id %>">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button type="submit" class="bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-blue-200 transition">
+                💰 Devolver fianza
+              </button>
+            </form>
+          <% } %>
+
+          <% if (['en_uso', 'devuelto'].includes(txn.estado) && !txn.fianzaBloqueada) { %>
+            <!-- Reportar incidencia -->
+            <button type="button" onclick="toggleIncidentForm('<%= txn.id %>')"
+              class="bg-red-100 text-red-700 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-red-200 transition">
+              ⚠️ Reportar incidencia
+            </button>
+          <% } %>
+
+          <% if (txn.fianzaBloqueada) { %>
+            <span class="bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-xs font-medium">
+              🚫 Fianza bloqueada (incidencia)
+            </span>
+          <% } %>
+
+          <% if (txn.fianzaDevuelta) { %>
+            <span class="bg-green-50 text-green-600 px-3 py-1.5 rounded-lg text-xs font-medium">
+              ✅ Fianza devuelta
+            </span>
+          <% } %>
+        </div>
+
+        <!-- Formulario de incidencia (oculto) -->
+        <div id="incident-<%= txn.id %>" class="hidden mt-4 bg-red-50 rounded-lg p-4">
+          <form method="POST" action="/dashboard/incidencia/<%= txn.id %>">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <div class="mb-3">
+              <label class="block text-xs font-medium text-red-800 mb-1">Tipo de incidencia</label>
+              <select name="tipo" required class="w-full border border-red-200 rounded-lg px-3 py-1.5 text-sm bg-white">
+                <option value="no_devuelto">No devuelto (robo)</option>
+                <option value="rotura">Rotura / Daño</option>
+                <option value="otro">Otro</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="block text-xs font-medium text-red-800 mb-1">Descripción</label>
+              <textarea name="descripcion" rows="2" required minlength="5" maxlength="500"
+                placeholder="Describe qué ha pasado..."
+                class="w-full border border-red-200 rounded-lg px-3 py-1.5 text-sm bg-white resize-y"></textarea>
+            </div>
+            <button type="submit" class="bg-red-600 text-white px-4 py-1.5 rounded-lg text-xs font-medium hover:bg-red-700 transition">
+              Enviar incidencia y bloquear fianza
+            </button>
+          </form>
+        </div>
+      </div>
+    <% }); %>
+  </div>
+<% } %>
+
+<script>
+function toggleIncidentForm(id) {
+  const el = document.getElementById('incident-' + id);
+  el.classList.toggle('hidden');
+}
+</script>

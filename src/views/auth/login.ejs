@@ -1,0 +1,32 @@
+<div class="max-w-md mx-auto">
+  <h1 class="text-2xl font-bold text-mar-oscuro mb-6 text-center">Iniciar Sesión</h1>
+
+  <form method="POST" action="/auth/login" class="bg-white rounded-2xl shadow-md p-6 space-y-4">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+    <div>
+      <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+      <input type="email" id="email" name="email" required autocomplete="email"
+        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-mar focus:border-transparent outline-none">
+    </div>
+
+    <div>
+      <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+      <input type="password" id="password" name="password" required autocomplete="current-password"
+        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-mar focus:border-transparent outline-none">
+    </div>
+
+    <button type="submit"
+      class="w-full bg-mar text-white py-2.5 rounded-lg font-medium hover:bg-mar-oscuro transition">
+      Entrar
+    </button>
+  </form>
+
+  <div class="mt-6 text-center text-sm text-gray-600 space-y-2">
+    <p>¿No tienes cuenta?</p>
+    <div class="flex gap-4 justify-center">
+      <a href="/auth/registro-cliente" class="text-mar hover:underline">Registrarme como cliente</a>
+      <a href="/auth/registro-ofertante" class="text-verde hover:underline">Soy ofertante</a>
+    </div>
+  </div>
+</div>
