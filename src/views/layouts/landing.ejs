@@ -1,36 +1,23 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="<%= lng %>">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= title %> | Galizano Reusa</title>
+  <title><%= title %> | <%= t('brand') %></title>
   <link rel="icon" type="image/jpeg" href="/images/GalizanoReusa-Icon.jpeg">
   <link rel="apple-touch-icon" href="/images/GalizanoReusa-Icon.jpeg">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            arena: '#f5e6d3',
-            mar: '#0077b6',
-            'mar-oscuro': '#023e8a',
-            coral: '#ff6b6b',
-            verde: '#2d6a4f',
-          }
-        }
-      }
-    }
-  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     body { font-family: 'Inter', sans-serif; }
   </style>
 </head>
 <body class="min-h-screen bg-gradient-to-b from-sky-100 to-arena">
   <!-- Minimal header for landing pages -->
   <header class="bg-white/80 backdrop-blur shadow-sm py-3 px-4 text-center">
-    <a href="/" class="text-mar-oscuro font-bold text-lg">🌊 Galizano Reusa</a>
+    <a href="/" class="text-mar-oscuro font-bold text-lg">🌊 <%= t('brand') %></a>
   </header>
 
   <!-- Flash messages -->
@@ -54,7 +41,7 @@
   </main>
 
   <footer class="text-center text-xs text-gray-400 py-4">
-    Galizano Reusa &mdash; Economía circular
+    <%= t('footer.circularEconomy') %>
   </footer>
 </body>
 </html>

@@ -25,13 +25,13 @@ router.get('/', requireOfertante, async (req, res) => {
     });
 
     res.render('dashboard/index', {
-      title: 'Mi Panel',
+      title: req.t('dashboard.title'),
       items,
       activeTransactions,
     });
   } catch (err) {
     console.error('Dashboard error:', err);
-    req.flash('error', 'Error al cargar el panel.');
+    req.flash('error', req.t('dashboard.loadError'));
     return res.redirect('/');
   }
 });
@@ -55,12 +55,12 @@ router.get('/devoluciones', requireOfertante, async (req, res) => {
     });
 
     res.render('dashboard/devoluciones', {
-      title: 'Devoluciones',
+      title: req.t('returns.title'),
       pendientes,
     });
   } catch (err) {
     console.error('Returns error:', err);
-    req.flash('error', 'Error al cargar devoluciones.');
+    req.flash('error', req.t('returns.returnsLoadError'));
     return res.redirect('/dashboard');
   }
 });
@@ -74,7 +74,7 @@ router.post('/confirmar-devolucion/:id', requireOfertante, async (req, res) => {
     });
 
     if (!txn || txn.item.ownerId !== req.session.user.id) {
-      req.flash('error', 'Transacción no encontrada.');
+      req.flash('error', req.t('returns.transactionNotFound'));
       return res.redirect('/dashboard/devoluciones');
     }
 
@@ -87,19 +87,19 @@ router.post('/confirmar-devolucion/:id', requireOfertante, async (req, res) => {
       },
     });
 
-    req.flash('success', 'Devolución registrada. La fianza se liberará mañana si no hay incidencias.');
+    req.flash('success', req.t('returns.returnConfirmed'));
     return res.redirect('/dashboard/devoluciones');
   } catch (err) {
     console.error('Return confirm error:', err);
-    req.flash('error', 'Error al confirmar devolución.');
+    req.flash('error', req.t('returns.returnError'));
     return res.redirect('/dashboard/devoluciones');
   }
 });
 
 // ─── POST /dashboard/incidencia/:id ─── Reportar incidencia (robo/rotura)
 router.post('/incidencia/:id', requireOfertante, [
-  body('tipo').isIn(['no_devuelto', 'rotura', 'otro']).withMessage('Tipo de incidencia inválido'),
-  body('descripcion').trim().isLength({ min: 5, max: 500 }).escape().withMessage('Describe la incidencia (5-500 caracteres)'),
+  body('tipo').isIn(['no_devuelto', 'rotura', 'otro']).withMessage((v, { req }) => req.t('validation.incidentTypeInvalid')),
+  body('descripcion').trim().isLength({ min: 5, max: 500 }).escape().withMessage((v, { req }) => req.t('validation.incidentDescRequired')),
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -114,7 +114,7 @@ router.post('/incidencia/:id', requireOfertante, [
     });
 
     if (!txn || txn.item.ownerId !== req.session.user.id) {
-      req.flash('error', 'Transacción no encontrada.');
+      req.flash('error', req.t('returns.transactionNotFound'));
       return res.redirect('/dashboard/devoluciones');
     }
 
@@ -137,11 +137,11 @@ router.post('/incidencia/:id', requireOfertante, [
       },
     });
 
-    req.flash('success', 'Incidencia registrada. La fianza ha sido bloqueada y se transferirá a tu cuenta.');
+    req.flash('success', req.t('returns.incidentReported'));
     return res.redirect('/dashboard/devoluciones');
   } catch (err) {
     console.error('Incident error:', err);
-    req.flash('error', 'Error al registrar incidencia.');
+    req.flash('error', req.t('returns.incidentError'));
     return res.redirect('/dashboard/devoluciones');
   }
 });
@@ -155,7 +155,7 @@ router.post('/liberar-fianza/:id', requireOfertante, async (req, res) => {
     });
 
     if (!txn || txn.item.ownerId !== req.session.user.id) {
-      req.flash('error', 'Transacción no encontrada.');
+      req.flash('error', req.t('returns.transactionNotFound'));
       return res.redirect('/dashboard/devoluciones');
     }
 
@@ -165,15 +165,15 @@ router.post('/liberar-fianza/:id', requireOfertante, async (req, res) => {
         where: { id: txn.id },
         data: { fianzaDevuelta: true, estado: 'cerrado' },
       });
-      req.flash('success', 'Fianza devuelta al cliente.');
+      req.flash('success', req.t('returns.depositRefunded'));
     } else {
-      req.flash('error', 'No se puede devolver la fianza (ya devuelta o bloqueada).');
+      req.flash('error', req.t('returns.depositRefundError'));
     }
 
     return res.redirect('/dashboard/devoluciones');
   } catch (err) {
     console.error('Refund error:', err);
-    req.flash('error', 'Error al devolver fianza.');
+    req.flash('error', req.t('returns.depositReleaseError'));
     return res.redirect('/dashboard/devoluciones');
   }
 });

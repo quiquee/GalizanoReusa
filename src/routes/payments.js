@@ -6,8 +6,8 @@ const stripe = require('../config/stripe');
 
 // ─── POST /pay/crear-sesion ─── Crear sesión de pago con Stripe
 router.post('/crear-sesion', [
-  body('itemId').notEmpty().withMessage('Artículo inválido'),
-  body('tipo').isIn(['venta', 'alquiler_medio_dia', 'alquiler_dia']).withMessage('Tipo de transacción inválido'),
+  body('itemId').notEmpty().withMessage((v, { req }) => req.t('validation.itemInvalid')),
+  body('tipo').isIn(['venta', 'alquiler_medio_dia', 'alquiler_dia']).withMessage((v, { req }) => req.t('validation.transactionInvalid')),
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -18,7 +18,7 @@ router.post('/crear-sesion', [
   try {
     const item = await prisma.item.findUnique({ where: { id: req.body.itemId } });
     if (!item || !item.activo) {
-      req.flash('error', 'Objeto no disponible.');
+      req.flash('error', req.t('landing.notAvailable'));
       return res.redirect('/');
     }
 
@@ -28,26 +28,27 @@ router.post('/crear-sesion', [
     switch (req.body.tipo) {
       case 'venta':
         importePago = item.precioVenta || 0;
-        descripcionPago = `Compra: ${item.titulo}`;
+        descripcionPago = req.t('payment.stripePurchase', { title: item.titulo });
         break;
       case 'alquiler_medio_dia':
         importePago = item.precioMedioDia || 0;
-        descripcionPago = `Alquiler medio día: ${item.titulo}`;
+        descripcionPago = req.t('payment.stripeRentHalf', { title: item.titulo });
         break;
       case 'alquiler_dia':
         importePago = item.precioDiaEntero || 0;
-        descripcionPago = `Alquiler día completo: ${item.titulo}`;
+        descripcionPago = req.t('payment.stripeRentFull', { title: item.titulo });
         break;
     }
 
     if (importePago <= 0) {
-      req.flash('error', 'Precio no configurado para este tipo de transacción.');
+      req.flash('error', req.t('payment.notConfigured'));
       return res.redirect(`/o/${item.slug}`);
     }
 
-    // Determinar si cobrar fianza
+    // Determinar si cobrar fianza (never for purchases, only for unverified renters)
+    const isVenta = req.body.tipo === 'venta';
     const isVerified = req.session.user?.emailVerified || false;
-    const importeFianza = isVerified ? 0 : item.importeFianza;
+    const importeFianza = isVenta ? 0 : (isVerified ? 0 : item.importeFianza);
     const total = importePago + importeFianza;
 
     // Crear transacción en BD
@@ -83,7 +84,7 @@ router.post('/crear-sesion', [
       lineItems.push({
         price_data: {
           currency: 'eur',
-          product_data: { name: `Fianza (reembolsable): ${item.titulo}` },
+          product_data: { name: req.t('payment.stripeDeposit', { title: item.titulo }) },
           unit_amount: Math.round(importeFianza * 100),
         },
         quantity: 1,
@@ -94,7 +95,7 @@ router.post('/crear-sesion', [
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
-      success_url: `${process.env.BASE_URL}/pay/exito?txn=${transaction.id}`,
+      success_url: `${process.env.BASE_URL}/pay/exito?txn=${transaction.id}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.BASE_URL}/o/${item.slug}?cancelado=1`,
       metadata: {
         transactionId: transaction.id,
@@ -106,7 +107,7 @@ router.post('/crear-sesion', [
     return res.redirect(303, session.url);
   } catch (err) {
     console.error('Payment session error:', err);
-    req.flash('error', 'Error al procesar el pago. Inténtalo de nuevo.');
+    req.flash('error', req.t('payment.processError'));
     return res.redirect('back');
   }
 });
@@ -120,17 +121,37 @@ router.get('/exito', async (req, res) => {
     });
 
     if (!txn) {
-      req.flash('error', 'Transacción no encontrada.');
+      req.flash('error', req.t('payment.notFound'));
       return res.redirect('/');
     }
 
+    // If still pending, verify with Stripe and update status
+    if (txn.estado === 'pendiente' && req.query.session_id) {
+      try {
+        const session = await stripe.checkout.sessions.retrieve(req.query.session_id);
+        if (session.payment_status === 'paid' && session.metadata?.transactionId === txn.id) {
+          const newEstado = txn.tipo !== 'venta' ? 'en_uso' : 'pagado';
+          await prisma.transaction.update({
+            where: { id: txn.id },
+            data: {
+              estado: newEstado,
+              stripePaymentIntentId: session.payment_intent,
+            },
+          });
+          txn.estado = newEstado;
+        }
+      } catch (stripeErr) {
+        console.error('Stripe session verify error:', stripeErr.message);
+      }
+    }
+
     res.render('payments/exito', {
-      title: 'Pago Completado',
+      title: req.t('payment.successTitle'),
       transaction: txn,
     });
   } catch (err) {
     console.error('Success page error:', err);
-    req.flash('error', 'Error al cargar confirmación.');
+    req.flash('error', req.t('payment.loadError'));
     return res.redirect('/');
   }
 });

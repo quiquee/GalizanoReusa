@@ -1,91 +1,94 @@
 <div class="max-w-2xl mx-auto">
-  <h1 class="text-2xl font-bold text-mar-oscuro mb-6">Editar: <%= item.titulo %></h1>
+  <h1 class="text-2xl font-bold text-mar-oscuro mb-6"><%= t('items.editTitle', { title: item.titulo }) %></h1>
 
   <form method="POST" action="/items/<%= item.slug %>/editar" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-md p-6 space-y-5">
     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
-    <!-- Fotos actuales -->
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-2">Fotos actuales</label>
+      <label class="block text-sm font-medium text-gray-700 mb-2"><%= t('items.currentPhotos') %></label>
       <div class="flex gap-2 flex-wrap">
         <% JSON.parse(item.fotos || '[]').forEach(function(foto) { %>
           <img src="<%= foto %>" alt="Foto" class="w-20 h-20 object-cover rounded-lg border">
         <% }); %>
       </div>
-      <label class="block text-sm font-medium text-gray-700 mt-3 mb-1">Añadir más fotos</label>
+      <label class="block text-sm font-medium text-gray-700 mt-3 mb-1"><%= t('items.addMorePhotos') %></label>
       <input type="file" name="fotos" multiple accept="image/jpeg,image/png,image/webp"
         class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-mar/10 file:text-mar file:font-medium">
     </div>
 
     <div>
-      <label for="titulo" class="block text-sm font-medium text-gray-700 mb-1">Título</label>
+      <label for="titulo" class="block text-sm font-medium text-gray-700 mb-1"><%= t('items.titleLabel') %></label>
       <input type="text" id="titulo" name="titulo" value="<%= item.titulo %>" required
         class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-mar outline-none">
     </div>
 
     <div>
-      <label for="descripcion" class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+      <label for="descripcion" class="block text-sm font-medium text-gray-700 mb-1"><%= t('items.descLabel') %></label>
       <textarea id="descripcion" name="descripcion" rows="3" required
         class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-mar outline-none resize-y"><%= item.descripcion %></textarea>
     </div>
 
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">Modelo de negocio</label>
+      <label class="block text-sm font-medium text-gray-700 mb-1"><%= t('items.businessModel') %></label>
       <select id="tipoTransaccion" name="tipoTransaccion" required
-        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-mar outline-none"
-        onchange="togglePriceFields()">
-        <option value="venta" <%= item.tipoTransaccion === 'venta' ? 'selected' : '' %>>Solo venta</option>
-        <option value="alquiler_medio_dia" <%= item.tipoTransaccion === 'alquiler_medio_dia' ? 'selected' : '' %>>Alquiler medio día</option>
-        <option value="alquiler_dia" <%= item.tipoTransaccion === 'alquiler_dia' ? 'selected' : '' %>>Alquiler día entero</option>
-        <option value="ambos_alquiler" <%= item.tipoTransaccion === 'ambos_alquiler' ? 'selected' : '' %>>Alquiler (medio día + día entero)</option>
-        <option value="todos" <%= item.tipoTransaccion === 'todos' ? 'selected' : '' %>>Venta + Alquiler</option>
+        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-mar outline-none">
+        <option value="venta" <%= item.tipoTransaccion === 'venta' ? 'selected' : '' %>><%= t('items.saleOnly') %></option>
+        <option value="alquiler_medio_dia" <%= item.tipoTransaccion === 'alquiler_medio_dia' ? 'selected' : '' %>><%= t('items.rentHalfDay') %></option>
+        <option value="alquiler_dia" <%= item.tipoTransaccion === 'alquiler_dia' ? 'selected' : '' %>><%= t('items.rentFullDay') %></option>
+        <option value="ambos_alquiler" <%= item.tipoTransaccion === 'ambos_alquiler' ? 'selected' : '' %>><%= t('items.rentBoth') %></option>
+        <option value="todos" <%= item.tipoTransaccion === 'todos' ? 'selected' : '' %>><%= t('items.saleAndRent') %></option>
       </select>
     </div>
 
     <div id="precioVentaGroup">
-      <label for="precioVenta" class="block text-sm font-medium text-gray-700 mb-1">Precio de venta (€)</label>
+      <label for="precioVenta" class="block text-sm font-medium text-gray-700 mb-1"><%= t('items.salePrice') %></label>
       <input type="number" id="precioVenta" name="precioVenta" step="0.01" min="0.01" value="<%= item.precioVenta || '' %>"
         class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-mar outline-none">
     </div>
 
     <div id="precioMedioDiaGroup">
-      <label for="precioMedioDia" class="block text-sm font-medium text-gray-700 mb-1">Precio medio día (€)</label>
+      <label for="precioMedioDia" class="block text-sm font-medium text-gray-700 mb-1"><%= t('items.halfDayPrice') %></label>
       <input type="number" id="precioMedioDia" name="precioMedioDia" step="0.01" min="0.01" value="<%= item.precioMedioDia || '' %>"
         class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-mar outline-none">
     </div>
 
     <div id="precioDiaEnteroGroup">
-      <label for="precioDiaEntero" class="block text-sm font-medium text-gray-700 mb-1">Precio día entero (€)</label>
+      <label for="precioDiaEntero" class="block text-sm font-medium text-gray-700 mb-1"><%= t('items.fullDayPrice') %></label>
       <input type="number" id="precioDiaEntero" name="precioDiaEntero" step="0.01" min="0.01" value="<%= item.precioDiaEntero || '' %>"
         class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-mar outline-none">
     </div>
 
     <div>
-      <label for="importeFianza" class="block text-sm font-medium text-gray-700 mb-1">Fianza (€)</label>
+      <label for="importeFianza" class="block text-sm font-medium text-gray-700 mb-1"><%= t('items.depositLabel') %></label>
       <input type="number" id="importeFianza" name="importeFianza" step="0.01" min="0.01" value="<%= item.importeFianza %>" required
         class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-mar outline-none">
     </div>
 
     <button type="submit" class="w-full bg-mar text-white py-2.5 rounded-lg font-medium hover:bg-mar-oscuro transition">
-      Guardar cambios
+      <%= t('items.saveChanges') %>
     </button>
   </form>
 </div>
 
 <script>
-function togglePriceFields() {
-  const tipo = document.getElementById('tipoTransaccion').value;
-  const venta = document.getElementById('precioVentaGroup');
-  const medioDia = document.getElementById('precioMedioDiaGroup');
-  const diaEntero = document.getElementById('precioDiaEnteroGroup');
+(function() {
+  var select = document.getElementById('tipoTransaccion');
+  var venta = document.getElementById('precioVentaGroup');
+  var medioDia = document.getElementById('precioMedioDiaGroup');
+  var diaEntero = document.getElementById('precioDiaEnteroGroup');
 
-  venta.classList.add('hidden');
-  medioDia.classList.add('hidden');
-  diaEntero.classList.add('hidden');
+  function togglePriceFields() {
+    var tipo = select.value;
+    venta.classList.add('hidden');
+    medioDia.classList.add('hidden');
+    diaEntero.classList.add('hidden');
 
-  if (tipo === 'venta' || tipo === 'todos') venta.classList.remove('hidden');
-  if (tipo === 'alquiler_medio_dia' || tipo === 'ambos_alquiler' || tipo === 'todos') medioDia.classList.remove('hidden');
-  if (tipo === 'alquiler_dia' || tipo === 'ambos_alquiler' || tipo === 'todos') diaEntero.classList.remove('hidden');
-}
-togglePriceFields();
+    if (tipo === 'venta' || tipo === 'todos') venta.classList.remove('hidden');
+    if (tipo === 'alquiler_medio_dia' || tipo === 'ambos_alquiler' || tipo === 'todos') medioDia.classList.remove('hidden');
+    if (tipo === 'alquiler_dia' || tipo === 'ambos_alquiler' || tipo === 'todos') diaEntero.classList.remove('hidden');
+  }
+
+  select.addEventListener('change', togglePriceFields);
+  togglePriceFields();
+})();
 </script>

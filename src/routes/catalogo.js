@@ -15,10 +15,10 @@ router.get('/', async (req, res) => {
       fotosList: JSON.parse(item.fotos || '[]'),
     }));
 
-    res.render('catalogo', { title: 'Objetos Disponibles', items: itemsConFotos });
+    res.render('catalogo', { title: req.t('catalog.title'), items: itemsConFotos });
   } catch (err) {
     console.error('Catalog error:', err);
-    req.flash('error', 'Error al cargar el catálogo.');
+    req.flash('error', req.t('catalog.empty'));
     return res.redirect('/');
   }
 });

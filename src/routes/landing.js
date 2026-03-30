@@ -11,8 +11,8 @@ router.get('/:slug', async (req, res) => {
 
     if (!item || !item.activo) {
       return res.status(404).render('error', {
-        title: 'Objeto no encontrado',
-        message: 'Este objeto ya no está disponible.',
+        title: req.t('error.title', { code: 404 }),
+        message: req.t('landing.notAvailable'),
         code: 404,
       });
     }
@@ -36,8 +36,8 @@ router.get('/:slug', async (req, res) => {
   } catch (err) {
     console.error('Landing error:', err);
     res.status(500).render('error', {
-      title: 'Error',
-      message: 'Error al cargar el objeto.',
+      title: req.t('error.title', { code: 500 }),
+      message: req.t('error.internal'),
       code: 500,
     });
   }

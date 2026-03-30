@@ -5,18 +5,40 @@ const prisma = require('../config/database');
 const { requireOfertante } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 const qrService = require('../services/qrService');
+const multer = require('multer');
+
+// CSRF middleware (applied after multer for multipart forms)
+function csrfAfterMultipart(req, res, next) {
+  req.app.locals.verifyCsrf(req, res, next);
+}
+
+// Wrap multer to handle file validation errors gracefully
+function handleUpload(fieldName, maxCount) {
+  return function(req, res, next) {
+    upload.array(fieldName, maxCount)(req, res, function(err) {
+      if (err) {
+        const msg = err instanceof multer.MulterError
+          ? req.t('validation.fileTooLarge')
+          : err.message || req.t('validation.invalidFile');
+        req.flash('error', msg);
+        return res.redirect('back');
+      }
+      next();
+    });
+  };
+}
 
 // ─── GET /items/crear ─── (Formulario de alta de objeto)
 router.get('/crear', requireOfertante, (req, res) => {
-  res.render('items/crear', { title: 'Añadir Objeto' });
+  res.render('items/crear', { title: req.t('items.addTitle') });
 });
 
 // ─── POST /items/crear ─── (Crear objeto con fotos)
-router.post('/crear', requireOfertante, upload.array('fotos', 5), [
-  body('titulo').trim().isLength({ min: 2, max: 100 }).escape().withMessage('Título obligatorio (2-100 caracteres)'),
-  body('descripcion').trim().isLength({ min: 5, max: 1000 }).escape().withMessage('Descripción obligatoria (5-1000 caracteres)'),
-  body('tipoTransaccion').isIn(['venta', 'alquiler_medio_dia', 'alquiler_dia', 'ambos_alquiler', 'todos']).withMessage('Tipo de transacción inválido'),
-  body('importeFianza').isFloat({ min: 0.01 }).withMessage('La fianza es obligatoria y debe ser mayor a 0'),
+router.post('/crear', requireOfertante, handleUpload('fotos', 5), csrfAfterMultipart, [
+  body('titulo').trim().isLength({ min: 2, max: 100 }).escape().withMessage((v, { req }) => req.t('validation.titleRequired')),
+  body('descripcion').trim().isLength({ min: 5, max: 1000 }).escape().withMessage((v, { req }) => req.t('validation.descRequired')),
+  body('tipoTransaccion').isIn(['venta', 'alquiler_medio_dia', 'alquiler_dia', 'ambos_alquiler', 'todos']).withMessage((v, { req }) => req.t('validation.transactionTypeInvalid')),
+  body('importeFianza').isFloat({ min: 0.01 }).withMessage((v, { req }) => req.t('validation.depositRequired')),
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -25,7 +47,7 @@ router.post('/crear', requireOfertante, upload.array('fotos', 5), [
   }
 
   if (!req.files || req.files.length === 0) {
-    req.flash('error', 'Debes subir al menos una foto del objeto.');
+    req.flash('error', req.t('validation.photosRequired'));
     return res.redirect('/items/crear');
   }
 
@@ -57,11 +79,11 @@ router.post('/crear', requireOfertante, upload.array('fotos', 5), [
       data: { qrCode: qrDataUrl },
     });
 
-    req.flash('success', '¡Objeto creado! Ya puedes imprimir el código QR.');
+    req.flash('success', req.t('items.itemCreated'));
     return res.redirect(`/items/${item.slug}/qr`);
   } catch (err) {
     console.error('Create item error:', err);
-    req.flash('error', 'Error al crear el objeto.');
+    req.flash('error', req.t('items.itemCreateError'));
     return res.redirect('/items/crear');
   }
 });
@@ -71,13 +93,20 @@ router.get('/:slug/qr', requireOfertante, async (req, res) => {
   try {
     const item = await prisma.item.findUnique({ where: { slug: req.params.slug } });
     if (!item || item.ownerId !== req.session.user.id) {
-      req.flash('error', 'Objeto no encontrado.');
+      req.flash('error', req.t('items.itemNotFound'));
       return res.redirect('/dashboard');
     }
+
+    // Always regenerate QR from current BASE_URL so it stays correct across environments
+    const landingUrl = `${process.env.BASE_URL}/o/${item.slug}`;
+    const qrDataUrl = await qrService.generateQR(landingUrl);
+    await prisma.item.update({ where: { id: item.id }, data: { qrCode: qrDataUrl } });
+    item.qrCode = qrDataUrl;
+
     res.render('items/qr', { title: `QR - ${item.titulo}`, item });
   } catch (err) {
     console.error('QR view error:', err);
-    req.flash('error', 'Error al cargar el QR.');
+    req.flash('error', req.t('items.qrLoadError'));
     return res.redirect('/dashboard');
   }
 });
@@ -87,18 +116,18 @@ router.get('/:slug/editar', requireOfertante, async (req, res) => {
   try {
     const item = await prisma.item.findUnique({ where: { slug: req.params.slug } });
     if (!item || item.ownerId !== req.session.user.id) {
-      req.flash('error', 'Objeto no encontrado.');
+      req.flash('error', req.t('items.itemNotFound'));
       return res.redirect('/dashboard');
     }
-    res.render('items/editar', { title: `Editar - ${item.titulo}`, item });
+    res.render('items/editar', { title: `${req.t('dashboard.edit')} - ${item.titulo}`, item });
   } catch (err) {
-    req.flash('error', 'Error al cargar el objeto.');
+    req.flash('error', req.t('items.itemLoadError'));
     return res.redirect('/dashboard');
   }
 });
 
 // ─── POST /items/:slug/editar ───
-router.post('/:slug/editar', requireOfertante, upload.array('fotos', 5), [
+router.post('/:slug/editar', requireOfertante, handleUpload('fotos', 5), csrfAfterMultipart, [
   body('titulo').trim().isLength({ min: 2, max: 100 }).escape(),
   body('descripcion').trim().isLength({ min: 5, max: 1000 }).escape(),
   body('importeFianza').isFloat({ min: 0.01 }),
@@ -106,7 +135,7 @@ router.post('/:slug/editar', requireOfertante, upload.array('fotos', 5), [
   try {
     const item = await prisma.item.findUnique({ where: { slug: req.params.slug } });
     if (!item || item.ownerId !== req.session.user.id) {
-      req.flash('error', 'Objeto no encontrado.');
+      req.flash('error', req.t('items.itemNotFound'));
       return res.redirect('/dashboard');
     }
 
@@ -127,28 +156,28 @@ router.post('/:slug/editar', requireOfertante, upload.array('fotos', 5), [
     }
 
     await prisma.item.update({ where: { id: item.id }, data: updateData });
-    req.flash('success', 'Objeto actualizado.');
+    req.flash('success', req.t('items.itemUpdated'));
     return res.redirect('/dashboard');
   } catch (err) {
     console.error('Edit item error:', err);
-    req.flash('error', 'Error al actualizar.');
+    req.flash('error', req.t('items.itemUpdateError'));
     return res.redirect('/dashboard');
   }
 });
 
 // ─── POST /items/:slug/desactivar ───
-router.post('/:slug/desactivar', requireOfertante, async (req, res) => {
+router.post('/:slug/desactivar', requireOfertante, csrfAfterMultipart, async (req, res) => {
   try {
     const item = await prisma.item.findUnique({ where: { slug: req.params.slug } });
     if (!item || item.ownerId !== req.session.user.id) {
-      req.flash('error', 'Objeto no encontrado.');
+      req.flash('error', req.t('items.itemNotFound'));
       return res.redirect('/dashboard');
     }
     await prisma.item.update({ where: { id: item.id }, data: { activo: !item.activo } });
-    req.flash('success', item.activo ? 'Objeto desactivado.' : 'Objeto reactivado.');
+    req.flash('success', item.activo ? req.t('items.itemDeactivated') : req.t('items.itemReactivated'));
     return res.redirect('/dashboard');
   } catch (err) {
-    req.flash('error', 'Error al cambiar estado.');
+    req.flash('error', req.t('items.itemStatusError'));
     return res.redirect('/dashboard');
   }
 });

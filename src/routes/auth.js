@@ -9,13 +9,13 @@ const SALT_ROUNDS = 12;
 
 // ─── GET /auth/login ───
 router.get('/login', (req, res) => {
-  res.render('auth/login', { title: 'Iniciar Sesión' });
+  res.render('auth/login', { title: req.t('auth.loginTitle') });
 });
 
 // ─── POST /auth/login ───
 router.post('/login', [
-  body('email').isEmail().normalizeEmail().withMessage('Email inválido'),
-  body('password').notEmpty().withMessage('La contraseña es obligatoria'),
+  body('email').isEmail().normalizeEmail().withMessage((v, { req }) => req.t('validation.emailInvalid')),
+  body('password').notEmpty().withMessage((v, { req }) => req.t('validation.passwordRequired')),
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -26,7 +26,7 @@ router.post('/login', [
   try {
     const user = await prisma.user.findUnique({ where: { email: req.body.email } });
     if (!user || !user.passwordHash || !(await bcrypt.compare(req.body.password, user.passwordHash))) {
-      req.flash('error', 'Email o contraseña incorrectos.');
+      req.flash('error', req.t('flash.invalidCredentials'));
       return res.redirect('/auth/login');
     }
 
@@ -38,27 +38,27 @@ router.post('/login', [
       emailVerified: user.emailVerified,
     };
 
-    req.flash('success', `¡Bienvenido/a, ${user.nombre}!`);
+    req.flash('success', req.t('flash.welcome', { name: user.nombre }));
     return res.redirect(['ofertante', 'admin'].includes(user.role) ? '/dashboard' : '/');
   } catch (err) {
     console.error('Login error:', err);
-    req.flash('error', 'Error al iniciar sesión.');
+    req.flash('error', req.t('flash.loginError'));
     return res.redirect('/auth/login');
   }
 });
 
 // ─── GET /auth/registro-cliente ───
 router.get('/registro-cliente', (req, res) => {
-  res.render('auth/registro-cliente', { title: 'Registro de Cliente' });
+  res.render('auth/registro-cliente', { title: req.t('auth.clientRegTitle') });
 });
 
 // ─── POST /auth/registro-cliente ───
 router.post('/registro-cliente', [
-  body('nombre').trim().isLength({ min: 2, max: 100 }).escape().withMessage('Nombre obligatorio (2-100 caracteres)'),
-  body('email').isEmail().normalizeEmail().withMessage('Email inválido'),
-  body('password').isLength({ min: 8 }).withMessage('La contraseña debe tener al menos 8 caracteres'),
-  body('direccion').trim().isLength({ min: 5, max: 200 }).escape().withMessage('Dirección obligatoria'),
-  body('dni').trim().isLength({ min: 9, max: 20 }).escape().withMessage('DNI obligatorio'),
+  body('nombre').trim().isLength({ min: 2, max: 100 }).escape().withMessage((v, { req }) => req.t('validation.nameRequired')),
+  body('email').isEmail().normalizeEmail().withMessage((v, { req }) => req.t('validation.emailInvalid')),
+  body('password').isLength({ min: 8 }).withMessage((v, { req }) => req.t('validation.passwordMin8')),
+  body('direccion').trim().isLength({ min: 5, max: 200 }).escape().withMessage((v, { req }) => req.t('validation.addressRequired')),
+  body('dni').trim().isLength({ min: 9, max: 20 }).escape().withMessage((v, { req }) => req.t('validation.dniRequired')),
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -69,7 +69,7 @@ router.post('/registro-cliente', [
   try {
     const existing = await prisma.user.findUnique({ where: { email: req.body.email } });
     if (existing) {
-      req.flash('error', 'Ya existe una cuenta con ese email.');
+      req.flash('error', req.t('flash.emailExists'));
       return res.redirect('/auth/registro-cliente');
     }
 
@@ -94,11 +94,11 @@ router.post('/registro-cliente', [
       emailVerified: user.emailVerified,
     };
 
-    req.flash('success', '¡Cuenta creada! Al estar registrado, no necesitas pagar fianza.');
+    req.flash('success', req.t('flash.accountCreated'));
     return res.redirect('/');
   } catch (err) {
     console.error('Registration error:', err);
-    req.flash('error', 'Error al crear la cuenta.');
+    req.flash('error', req.t('flash.accountCreateError'));
     return res.redirect('/auth/registro-cliente');
   }
 });
@@ -111,16 +111,16 @@ router.get('/registro-ofertante', async (req, res) => {
     fullUser = await prisma.user.findUnique({ where: { id: req.session.user.id }, select: { dni: true } });
     fullUser = { ...req.session.user, dni: fullUser?.dni };
   }
-  res.render('auth/registro-ofertante', { title: 'Registro de Ofertante', user: fullUser });
+  res.render('auth/registro-ofertante', { title: req.t('auth.ofertanteRegTitle'), user: fullUser });
 });
 
 // ─── POST /auth/upgrade-ofertante ─── (usuario logueado se convierte en ofertante)
 router.post('/upgrade-ofertante', [
-  body('bankIban').trim().isLength({ min: 15, max: 34 }).escape().withMessage('IBAN bancario obligatorio'),
+  body('bankIban').trim().isLength({ min: 15, max: 34 }).escape().withMessage((v, { req }) => req.t('validation.ibanRequired')),
   body('dni').optional().trim().isLength({ min: 9, max: 20 }).escape(),
 ], async (req, res) => {
   if (!req.session.user) {
-    req.flash('error', 'Debes iniciar sesión primero.');
+    req.flash('error', req.t('flash.loginRequired'));
     return res.redirect('/auth/login');
   }
 
@@ -147,21 +147,21 @@ router.post('/upgrade-ofertante', [
       emailVerified: user.emailVerified,
     };
 
-    req.flash('success', '¡Ya eres ofertante! Ahora puedes subir tus objetos.');
+    req.flash('success', req.t('flash.nowOfertante'));
     return res.redirect('/dashboard');
   } catch (err) {
     console.error('Upgrade error:', err);
-    req.flash('error', 'Error al activar cuenta de ofertante.');
+    req.flash('error', req.t('flash.upgradeError'));
     return res.redirect('/auth/registro-ofertante');
   }
 });
 
 // ─── POST /auth/registro-ofertante ───
 router.post('/registro-ofertante', [
-  body('nombre').trim().isLength({ min: 2, max: 100 }).escape().withMessage('Nombre obligatorio'),
-  body('email').isEmail().normalizeEmail().withMessage('Email inválido'),
-  body('password').isLength({ min: 8 }).withMessage('La contraseña debe tener al menos 8 caracteres'),
-  body('bankIban').trim().isLength({ min: 15, max: 34 }).escape().withMessage('IBAN bancario obligatorio'),
+  body('nombre').trim().isLength({ min: 2, max: 100 }).escape().withMessage((v, { req }) => req.t('validation.nameRequiredShort')),
+  body('email').isEmail().normalizeEmail().withMessage((v, { req }) => req.t('validation.emailInvalid')),
+  body('password').isLength({ min: 8 }).withMessage((v, { req }) => req.t('validation.passwordMin8')),
+  body('bankIban').trim().isLength({ min: 15, max: 34 }).escape().withMessage((v, { req }) => req.t('validation.ibanRequired')),
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -172,7 +172,7 @@ router.post('/registro-ofertante', [
   try {
     const existing = await prisma.user.findUnique({ where: { email: req.body.email } });
     if (existing) {
-      req.flash('error', 'Ya existe una cuenta con ese email.');
+      req.flash('error', req.t('flash.emailExists'));
       return res.redirect('/auth/registro-ofertante');
     }
 
@@ -196,11 +196,11 @@ router.post('/registro-ofertante', [
       emailVerified: user.emailVerified,
     };
 
-    req.flash('success', '¡Cuenta de ofertante creada! Ya puedes subir tus objetos.');
+    req.flash('success', req.t('flash.ofertanteCreated'));
     return res.redirect('/dashboard');
   } catch (err) {
     console.error('Registration error:', err);
-    req.flash('error', 'Error al crear la cuenta.');
+    req.flash('error', req.t('flash.accountCreateError'));
     return res.redirect('/auth/registro-ofertante');
   }
 });
@@ -221,7 +221,7 @@ function loginOAuthUser(req, res, user) {
     role: user.role,
     emailVerified: user.emailVerified,
   };
-  req.flash('success', `¡Bienvenido/a, ${user.nombre}!`);
+  req.flash('success', req.t('flash.welcome', { name: user.nombre }));
   return res.redirect(['ofertante', 'admin'].includes(user.role) ? '/dashboard' : '/');
 }
 
@@ -229,7 +229,8 @@ function loginOAuthUser(req, res, user) {
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
 router.get('/google/callback',
-  passport.authenticate('google', { failureRedirect: '/auth/login', failureFlash: 'Error al iniciar sesión con Google.' }),
+  passport.authenticate('google', { failureRedirect: '/auth/login', failureFlash: true }),
+  // Note: failureFlash message handled by passport strategy
   (req, res) => {
     loginOAuthUser(req, res, req.user);
   }
@@ -239,7 +240,8 @@ router.get('/google/callback',
 router.get('/facebook', passport.authenticate('facebook', { scope: ['email'] }));
 
 router.get('/facebook/callback',
-  passport.authenticate('facebook', { failureRedirect: '/auth/login', failureFlash: 'Error al iniciar sesión con Facebook.' }),
+  passport.authenticate('facebook', { failureRedirect: '/auth/login', failureFlash: true }),
+  // Note: failureFlash message handled by passport strategy
   (req, res) => {
     loginOAuthUser(req, res, req.user);
   }

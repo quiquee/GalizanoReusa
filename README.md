@@ -2,7 +2,7 @@
 
 **Plataforma de economía circular para reutilización de objetos en zonas de playa.**
 
-Galizano Reusa permite a cualquier persona compartir objetos de uso cotidiano (sombrillas, tablas de surf, palas, gafas de bucear, etc.) mediante códigos QR colocados en la playa o el parking. Los usuarios escanean el QR con su móvil, eligen una tarifa y pagan de forma segura con Stripe.
+Gagit 
 
 ---
 

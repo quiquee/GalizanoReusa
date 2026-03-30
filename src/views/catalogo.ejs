@@ -1,10 +1,10 @@
-<h1 class="text-2xl font-bold text-mar-oscuro mb-2">Objetos Disponibles</h1>
-<p class="text-sm text-gray-500 mb-6">Explora los objetos que puedes alquilar o comprar. También puedes escanear directamente el QR en la playa.</p>
+<h1 class="text-2xl font-bold text-mar-oscuro mb-2"><%= t('catalog.title') %></h1>
+<p class="text-sm text-gray-500 mb-6"><%= t('catalog.desc') %></p>
 
 <% if (items.length === 0) { %>
   <div class="bg-white rounded-xl shadow p-8 text-center text-gray-400">
     <p class="text-4xl mb-3">🏖️</p>
-    <p>No hay objetos disponibles en este momento.</p>
+    <p><%= t('catalog.empty') %></p>
   </div>
 <% } else { %>
   <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -23,17 +23,17 @@
           <div class="flex flex-wrap gap-2 mt-3">
             <% if (item.precioMedioDia) { %>
               <span class="bg-sky-50 text-mar text-xs px-2 py-0.5 rounded-full font-medium">
-                Medio día: <%= item.precioMedioDia.toFixed(2) %> €
+                <%= t('catalog.halfDay') %>: <%= item.precioMedioDia.toFixed(2) %> €
               </span>
             <% } %>
             <% if (item.precioDiaEntero) { %>
               <span class="bg-sky-50 text-mar text-xs px-2 py-0.5 rounded-full font-medium">
-                Día: <%= item.precioDiaEntero.toFixed(2) %> €
+                <%= t('catalog.fullDay') %>: <%= item.precioDiaEntero.toFixed(2) %> €
               </span>
             <% } %>
             <% if (item.precioVenta) { %>
               <span class="bg-green-50 text-verde text-xs px-2 py-0.5 rounded-full font-medium">
-                Comprar: <%= item.precioVenta.toFixed(2) %> €
+                <%= t('catalog.buyLabel') %>: <%= item.precioVenta.toFixed(2) %> €
               </span>
             <% } %>
           </div>
