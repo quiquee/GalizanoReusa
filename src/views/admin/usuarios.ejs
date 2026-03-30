@@ -1,0 +1,83 @@
+<!-- Admin: Lista de usuarios -->
+<div class="max-w-5xl mx-auto">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Usuarios</h1>
+      <p class="text-sm text-gray-500 mt-0.5"><%= usuarios.length %> resultado(s)</p>
+    </div>
+    <a href="/admin" class="text-sm text-gray-500 hover:text-mar transition">← Volver al panel</a>
+  </div>
+
+  <!-- Filtros -->
+  <form method="GET" action="/admin/usuarios" class="bg-white border border-gray-100 rounded-xl shadow-sm p-4 mb-6">
+    <div class="flex flex-col sm:flex-row gap-3">
+      <input type="text" name="q" value="<%= q %>" placeholder="Buscar por nombre, email o DNI…"
+             class="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-mar focus:outline-none">
+      <select name="rol" class="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-mar focus:outline-none">
+        <option value="">Todos los roles</option>
+        <option value="cliente"   <%= rol === 'cliente'   ? 'selected' : '' %>>Cliente</option>
+        <option value="ofertante" <%= rol === 'ofertante' ? 'selected' : '' %>>Ofertante</option>
+        <option value="admin"     <%= rol === 'admin'     ? 'selected' : '' %>>Admin</option>
+      </select>
+      <button type="submit" class="bg-mar text-white text-sm px-5 py-2 rounded-lg hover:bg-mar-oscuro transition">Buscar</button>
+      <% if (q || rol) { %>
+        <a href="/admin/usuarios" class="text-sm text-gray-500 border border-gray-200 px-4 py-2 rounded-lg hover:bg-gray-50 text-center">✕ Limpiar</a>
+      <% } %>
+    </div>
+  </form>
+
+  <!-- Tabla de usuarios -->
+  <% if (usuarios.length === 0) { %>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-10 text-center text-gray-400">
+      <p class="text-4xl mb-3">👥</p>
+      <p>No se encontraron usuarios con estos filtros.</p>
+    </div>
+  <% } else { %>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm min-w-[600px]">
+          <thead class="bg-gray-50">
+            <tr class="text-left text-xs text-gray-500 uppercase tracking-wide border-b border-gray-100">
+              <th class="px-4 py-3">Nombre</th>
+              <th class="px-4 py-3">Email</th>
+              <th class="px-4 py-3">Rol</th>
+              <th class="px-4 py-3 hidden md:table-cell">Objetos</th>
+              <th class="px-4 py-3 hidden md:table-cell">Transacciones</th>
+              <th class="px-4 py-3 hidden md:table-cell">Registro</th>
+              <th class="px-4 py-3">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% usuarios.forEach(function(u) { %>
+              <tr class="border-b border-gray-50 hover:bg-gray-50 transition">
+                <td class="px-4 py-3 font-medium text-gray-900 truncate max-w-[160px]"><%= u.nombre %></td>
+                <td class="px-4 py-3 text-gray-600 truncate max-w-[180px]"><%= u.email %></td>
+                <td class="px-4 py-3">
+                  <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium
+                    <%= u.role === 'admin'     ? 'bg-purple-100 text-purple-700' :
+                       u.role === 'ofertante'  ? 'bg-blue-100 text-blue-700' :
+                       'bg-gray-100 text-gray-600' %>">
+                    <%= u.role %>
+                  </span>
+                </td>
+                <td class="px-4 py-3 text-gray-500 hidden md:table-cell"><%= u._count.items %></td>
+                <td class="px-4 py-3 text-gray-500 hidden md:table-cell"><%= u._count.transactions %></td>
+                <td class="px-4 py-3 text-gray-400 whitespace-nowrap hidden md:table-cell">
+                  <%= new Date(u.createdAt).toLocaleDateString('es-ES') %>
+                </td>
+                <td class="px-4 py-3">
+                  <a href="/admin/usuarios/<%= u.id %>/editar"
+                     class="inline-block text-xs bg-mar/10 text-mar px-3 py-1.5 rounded-lg hover:bg-mar/20 transition font-medium">
+                    Editar
+                  </a>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <% } %>
+</div>

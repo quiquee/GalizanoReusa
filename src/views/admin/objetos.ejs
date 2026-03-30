@@ -1,0 +1,73 @@
+<!-- Admin: Lista de objetos -->
+<div class="max-w-5xl mx-auto">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Objetos</h1>
+      <p class="text-sm text-gray-500 mt-0.5"><%= objetos.length %> resultado(s)</p>
+    </div>
+    <a href="/admin" class="text-sm text-gray-500 hover:text-mar transition">← Volver al panel</a>
+  </div>
+
+  <!-- Filtros -->
+  <form method="GET" action="/admin/objetos" class="bg-white border border-gray-100 rounded-xl shadow-sm p-4 mb-6">
+    <div class="flex flex-col sm:flex-row gap-3">
+      <input type="text" name="q" value="<%= q %>" placeholder="Buscar por título o descripción…"
+             class="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-mar focus:outline-none">
+      <select name="activo" class="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-mar focus:outline-none">
+        <option value="">Todos</option>
+        <option value="true"  <%= activo === 'true'  ? 'selected' : '' %>>Activos</option>
+        <option value="false" <%= activo === 'false' ? 'selected' : '' %>>Desactivados</option>
+      </select>
+      <button type="submit" class="bg-mar text-white text-sm px-5 py-2 rounded-lg hover:bg-mar-oscuro transition">Buscar</button>
+      <% if (q || activo) { %>
+        <a href="/admin/objetos" class="text-sm text-gray-500 border border-gray-200 px-4 py-2 rounded-lg hover:bg-gray-50 text-center">✕ Limpiar</a>
+      <% } %>
+    </div>
+  </form>
+
+  <!-- Lista de objetos -->
+  <% if (objetos.length === 0) { %>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-10 text-center text-gray-400">
+      <p class="text-4xl mb-3">📦</p>
+      <p>No se encontraron objetos con estos filtros.</p>
+    </div>
+  <% } else { %>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <% objetos.forEach(function(obj) { %>
+        <%
+          let fotos = [];
+          try { fotos = JSON.parse(obj.fotos || '[]'); } catch(e) {}
+        %>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden <%= !obj.activo ? 'opacity-60' : '' %>">
+          <!-- Imagen -->
+          <div class="relative">
+            <% if (fotos.length > 0) { %>
+              <img src="<%= fotos[0] %>" alt="<%= obj.titulo %>" class="w-full h-36 object-cover">
+            <% } else { %>
+              <div class="w-full h-36 bg-gray-100 flex items-center justify-center text-3xl">📦</div>
+            <% } %>
+            <% if (!obj.activo) { %>
+              <span class="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">Desactivado</span>
+            <% } %>
+          </div>
+          <!-- Datos -->
+          <div class="p-4">
+            <h3 class="font-semibold text-gray-900 truncate text-sm"><%= obj.titulo %></h3>
+            <p class="text-xs text-gray-400 mt-0.5 truncate">
+              Propietario: <span class="text-gray-600"><%= obj.owner.nombre %></span>
+            </p>
+            <div class="flex items-center justify-between mt-3">
+              <span class="text-xs text-gray-400"><%= obj._count.transactions %> transacciones</span>
+              <a href="/admin/objetos/<%= obj.slug %>/editar"
+                 class="text-xs bg-mar/10 text-mar px-3 py-1.5 rounded-lg hover:bg-mar/20 transition font-medium">
+                Editar
+              </a>
+            </div>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+  <% } %>
+</div>

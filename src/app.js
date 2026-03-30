@@ -132,6 +132,10 @@ app.use('/dashboard', verifyCsrf, dashboardRoutes);
 app.use('/pay', verifyCsrf, paymentRoutes);
 app.use('/webhooks', webhookRoutes); // Sin CSRF (Stripe envía webhooks)
 
+// Panel de administración
+const adminRoutes = require('./routes/admin');
+app.use('/admin', verifyCsrf, adminRoutes);
+
 // Catálogo público de objetos
 const catalogoRoutes = require('./routes/catalogo');
 app.use('/catalogo', catalogoRoutes);

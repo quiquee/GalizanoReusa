@@ -42,6 +42,9 @@
             <a href="/dashboard" class="text-mar hover:underline">Mi Panel</a>
             <a href="/items/crear" class="bg-mar text-white px-3 py-1.5 rounded-lg hover:bg-mar-oscuro transition">+ Añadir objeto</a>
           <% } %>
+          <% if (user.role === 'admin') { %>
+            <a href="/admin" class="text-purple-600 hover:underline font-medium">Admin</a>
+          <% } %>
           <a href="/auth/logout" class="text-gray-500 hover:text-coral transition">Salir</a>
         <% } else { %>
           <a href="/auth/login" class="text-mar hover:underline">Iniciar sesión</a>

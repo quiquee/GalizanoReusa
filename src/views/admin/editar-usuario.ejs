@@ -1,0 +1,91 @@
+<!-- Admin: Editar usuario -->
+<div class="max-w-2xl mx-auto">
+
+  <!-- Header -->
+  <div class="flex items-center gap-3 mb-6">
+    <a href="/admin/usuarios" class="text-gray-400 hover:text-mar transition p-2 rounded-lg hover:bg-gray-100">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+      </svg>
+    </a>
+    <div>
+      <h1 class="text-xl font-bold text-gray-900">Editar usuario</h1>
+      <p class="text-sm text-gray-400 mt-0.5">ID: <%= usuario.id %></p>
+    </div>
+  </div>
+
+  <form method="POST" action="/admin/usuarios/<%= usuario.id %>/editar" class="space-y-5">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+    <!-- Datos básicos -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 space-y-4">
+      <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Datos personales</h2>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1" for="nombre">Nombre completo</label>
+        <input id="nombre" name="nombre" type="text" value="<%= usuario.nombre %>" required
+               class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-mar focus:outline-none">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1" for="email">Email</label>
+        <input id="email" name="email" type="email" value="<%= usuario.email %>" required
+               class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-mar focus:outline-none">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1" for="rol">Rol</label>
+        <select id="rol" name="rol"
+                class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-mar focus:outline-none">
+          <option value="cliente"   <%= usuario.role === 'cliente'   ? 'selected' : '' %>>Cliente</option>
+          <option value="ofertante" <%= usuario.role === 'ofertante' ? 'selected' : '' %>>Ofertante</option>
+          <option value="admin"     <%= usuario.role === 'admin'     ? 'selected' : '' %>>Admin</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1" for="direccion">Dirección</label>
+        <input id="direccion" name="direccion" type="text" value="<%= usuario.direccion || '' %>"
+               class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-mar focus:outline-none">
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1" for="dni">DNI / NIF</label>
+          <input id="dni" name="dni" type="text" value="<%= usuario.dni || '' %>"
+                 class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-mar focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1" for="bankIban">IBAN bancario</label>
+          <input id="bankIban" name="bankIban" type="text" value="<%= usuario.bankIban || '' %>"
+                 class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-mar focus:outline-none">
+        </div>
+      </div>
+    </div>
+
+    <!-- Cambiar contraseña -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 space-y-4">
+      <div>
+        <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Cambiar contraseña</h2>
+        <p class="text-xs text-gray-400 mt-0.5">Deja en blanco para no modificarla.</p>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1" for="nuevaContrasena">Nueva contraseña</label>
+        <input id="nuevaContrasena" name="nuevaContrasena" type="password" minlength="8" autocomplete="new-password"
+               placeholder="Mínimo 8 caracteres"
+               class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-mar focus:outline-none">
+      </div>
+    </div>
+
+    <!-- Acciones -->
+    <div class="flex gap-3">
+      <button type="submit"
+              class="flex-1 bg-mar text-white text-sm font-semibold py-3 rounded-xl hover:bg-mar-oscuro transition">
+        Guardar cambios
+      </button>
+      <a href="/admin/usuarios" class="flex-1 text-center border border-gray-200 text-gray-600 text-sm font-medium py-3 rounded-xl hover:bg-gray-50 transition">
+        Cancelar
+      </a>
+    </div>
+  </form>
+</div>
