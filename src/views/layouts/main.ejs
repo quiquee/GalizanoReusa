@@ -1,29 +1,16 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="<%= lng %>">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= title %> | Galizano Reusa</title>
+  <title><%= title %> | <%= t('brand') %></title>
   <link rel="icon" type="image/jpeg" href="/images/GalizanoReusa-Icon.jpeg">
   <link rel="apple-touch-icon" href="/images/GalizanoReusa-Icon.jpeg">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            arena: '#f5e6d3',
-            mar: '#0077b6',
-            'mar-oscuro': '#023e8a',
-            coral: '#ff6b6b',
-            verde: '#2d6a4f',
-          }
-        }
-      }
-    }
-  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     body { font-family: 'Inter', sans-serif; }
   </style>
 </head>
@@ -32,24 +19,38 @@
   <nav class="bg-white/90 backdrop-blur shadow-sm sticky top-0 z-50">
     <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
       <a href="/" class="flex items-center gap-2 text-mar-oscuro font-bold text-xl">
-        <img src="/images/GalizanoReusa-Icon.jpeg" alt="Galizano Reusa" class="w-8 h-8 rounded-full object-cover">
-        Galizano Reusa
+        <img src="/images/GalizanoReusa-Icon.jpeg" alt="<%= t('brand') %>" class="w-8 h-8 rounded-full object-cover">
+        <%= t('brand') %>
       </a>
       <div class="flex items-center gap-4 text-sm">
         <% if (user) { %>
-          <span class="text-gray-600">Hola, <strong><%= user.nombre %></strong></span>
+          <span class="text-gray-600"><%- t('nav.hello', { name: user.nombre }) %></span>
           <% if (user.role === 'ofertante' || user.role === 'admin') { %>
-            <a href="/dashboard" class="text-mar hover:underline">Mi Panel</a>
-            <a href="/items/crear" class="bg-mar text-white px-3 py-1.5 rounded-lg hover:bg-mar-oscuro transition">+ Añadir objeto</a>
+            <a href="/dashboard" class="text-mar hover:underline"><%= t('nav.myPanel') %></a>
+            <a href="/items/crear" class="bg-mar text-white px-3 py-1.5 rounded-lg hover:bg-mar-oscuro transition"><%= t('nav.addItem') %></a>
           <% } %>
           <% if (user.role === 'admin') { %>
             <a href="/admin" class="text-purple-600 hover:underline font-medium">Admin</a>
           <% } %>
           <a href="/auth/logout" class="text-gray-500 hover:text-coral transition">Salir</a>
         <% } else { %>
-          <a href="/auth/login" class="text-mar hover:underline">Iniciar sesión</a>
-          <a href="/auth/registro-cliente" class="bg-mar text-white px-3 py-1.5 rounded-lg hover:bg-mar-oscuro transition">Registrarse</a>
+          <a href="/auth/login" class="text-mar hover:underline"><%= t('nav.login') %></a>
+          <a href="/auth/registro-cliente" class="bg-mar text-white px-3 py-1.5 rounded-lg hover:bg-mar-oscuro transition"><%= t('nav.register') %></a>
         <% } %>
+
+        <!-- Language switcher -->
+        <div class="relative" id="langSwitcher">
+          <button type="button" id="langBtn"
+            class="text-gray-500 hover:text-mar transition text-lg cursor-pointer p-1" title="Language">
+            🌐
+          </button>
+          <div id="langMenu" class="hidden absolute right-0 mt-2 bg-white rounded-lg shadow-lg border py-1 min-w-[120px] z-50">
+            <a href="/lang/es" class="block px-3 py-1.5 text-sm hover:bg-sky-50 <%= lng === 'es' ? 'font-bold text-mar' : 'text-gray-700' %>">🇪🇸 Español</a>
+            <a href="/lang/en" class="block px-3 py-1.5 text-sm hover:bg-sky-50 <%= lng === 'en' ? 'font-bold text-mar' : 'text-gray-700' %>">🇬🇧 English</a>
+            <a href="/lang/fr" class="block px-3 py-1.5 text-sm hover:bg-sky-50 <%= lng === 'fr' ? 'font-bold text-mar' : 'text-gray-700' %>">🇫🇷 Français</a>
+            <a href="/lang/de" class="block px-3 py-1.5 text-sm hover:bg-sky-50 <%= lng === 'de' ? 'font-bold text-mar' : 'text-gray-700' %>">🇩🇪 Deutsch</a>
+          </div>
+        </div>
       </div>
     </div>
   </nav>
@@ -77,8 +78,25 @@
 
   <!-- Footer -->
   <footer class="bg-mar-oscuro text-white/70 text-center text-sm py-6 mt-auto">
-    <p>&copy; <%= new Date().getFullYear() %> Galizano Reusa &mdash; Economía circular en la playa</p>
-    <p class="mt-2"><a href="/privacidad" class="text-white/50 hover:text-white transition">Protección de datos</a></p>
+    <p><%= t('footer.copyright', { year: new Date().getFullYear() }) %></p>
+    <p class="mt-2"><a href="/privacidad" class="text-white/50 hover:text-white transition"><%= t('footer.privacy') %></a></p>
   </footer>
+
+  <script>
+    // Language switcher toggle
+    (function() {
+      var btn = document.getElementById('langBtn');
+      var menu = document.getElementById('langMenu');
+      if (btn && menu) {
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          menu.classList.toggle('hidden');
+        });
+        document.addEventListener('click', function() {
+          menu.classList.add('hidden');
+        });
+      }
+    })();
+  </script>
 </body>
 </html>

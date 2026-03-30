@@ -1,27 +1,27 @@
 <div class="max-w-md mx-auto text-center">
   <div class="text-5xl mb-4">✅</div>
-  <h1 class="text-2xl font-bold text-mar-oscuro mb-2">¡Pago completado!</h1>
+  <h1 class="text-2xl font-bold text-mar-oscuro mb-2"><%= t('payment.successTitle') %></h1>
 
   <div class="bg-white rounded-2xl shadow-md p-6 mt-6 text-left">
     <h2 class="font-semibold text-lg text-gray-800 mb-3"><%= transaction.item.titulo %></h2>
 
     <dl class="space-y-2 text-sm">
       <div class="flex justify-between">
-        <dt class="text-gray-500">Tipo</dt>
+        <dt class="text-gray-500"><%= t('payment.type') %></dt>
         <dd class="font-medium capitalize"><%= transaction.tipo.replace(/_/g, ' ') %></dd>
       </div>
       <div class="flex justify-between">
-        <dt class="text-gray-500">Importe</dt>
+        <dt class="text-gray-500"><%= t('payment.amount') %></dt>
         <dd class="font-medium"><%= transaction.importePago.toFixed(2) %> €</dd>
       </div>
       <% if (transaction.importeFianza > 0) { %>
         <div class="flex justify-between">
-          <dt class="text-gray-500">Fianza (reembolsable)</dt>
+          <dt class="text-gray-500"><%= t('payment.deposit') %></dt>
           <dd class="font-medium text-amber-600"><%= transaction.importeFianza.toFixed(2) %> €</dd>
         </div>
       <% } %>
       <div class="flex justify-between border-t pt-2">
-        <dt class="text-gray-700 font-semibold">Total cobrado</dt>
+        <dt class="text-gray-700 font-semibold"><%= t('payment.totalCharged') %></dt>
         <dd class="font-bold text-mar"><%= (transaction.importePago + transaction.importeFianza).toFixed(2) %> €</dd>
       </div>
     </dl>
@@ -29,12 +29,12 @@
 
   <% if (transaction.tipo !== 'venta') { %>
     <div class="bg-sky-50 border border-sky-200 rounded-xl p-4 mt-4 text-sm text-sky-800 text-left">
-      <p><strong>📍 Recuerda:</strong> Al terminar de usar el objeto, devuélvelo al mismo lugar donde lo encontraste.</p>
+      <p><strong>📍 <%= t('payment.reminder') %></strong></p>
       <% if (transaction.importeFianza > 0) { %>
-        <p class="mt-2">Tu fianza de <strong><%= transaction.importeFianza.toFixed(2) %> €</strong> se devolverá al día siguiente si el objeto está en buenas condiciones.</p>
+        <p class="mt-2"><%- t('payment.depositInfo') %></p>
       <% } %>
     </div>
   <% } %>
 
-  <a href="/" class="inline-block mt-6 text-mar hover:underline text-sm">← Volver al inicio</a>
+  <a href="/" class="inline-block mt-6 text-mar hover:underline text-sm"><%= t('payment.backHome') %></a>
 </div>

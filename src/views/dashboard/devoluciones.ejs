@@ -1,12 +1,12 @@
-<h1 class="text-2xl font-bold text-mar-oscuro mb-2">Devoluciones</h1>
-<p class="text-sm text-gray-500 mb-6">Revisa las devoluciones de tus objetos alquilados. La fianza se libera al día siguiente si todo está correcto.</p>
+<h1 class="text-2xl font-bold text-mar-oscuro mb-2"><%= t('returns.title') %></h1>
+<p class="text-sm text-gray-500 mb-6"><%= t('returns.desc') %></p>
 
-<a href="/dashboard" class="text-sm text-mar hover:underline mb-4 inline-block">← Volver al panel</a>
+<a href="/dashboard" class="text-sm text-mar hover:underline mb-4 inline-block"><%= t('returns.backToPanel') %></a>
 
 <% if (pendientes.length === 0) { %>
   <div class="bg-white rounded-xl shadow p-8 text-center text-gray-400">
     <p class="text-4xl mb-3">✅</p>
-    <p>No hay devoluciones pendientes.</p>
+    <p><%= t('returns.noPending') %></p>
   </div>
 <% } else { %>
   <div class="space-y-4">
@@ -16,15 +16,15 @@
           <div>
             <h3 class="font-semibold text-mar-oscuro"><%= txn.item.titulo %></h3>
             <p class="text-xs text-gray-500 mt-1">
-              Tipo: <span class="capitalize"><%= txn.tipo.replace(/_/g, ' ') %></span> &mdash;
-              Pago: <%= txn.importePago.toFixed(2) %> € &mdash;
-              Fianza: <%= txn.importeFianza.toFixed(2) %> €
+              <%= t('dashboard.type') %>: <span class="capitalize"><%= txn.tipo.replace(/_/g, ' ') %></span> &mdash;
+              <%= t('returns.payment') %>: <%= txn.importePago.toFixed(2) %> € &mdash;
+              <%= t('dashboard.deposit') %>: <%= txn.importeFianza.toFixed(2) %> €
             </p>
             <p class="text-xs text-gray-400 mt-1">
-              Cliente: <%= txn.client ? txn.client.nombre : 'Invitado' %> &mdash;
-              Inicio: <%= txn.fechaInicio.toLocaleDateString('es-ES') %>
+              <%= t('returns.client') %>: <%= txn.client ? txn.client.nombre : 'Invitado' %> &mdash;
+              <%= t('returns.startDate') %>: <%= txn.fechaInicio.toLocaleDateString(lng) %>
               <% if (txn.fechaFin) { %>
-                &mdash; Fin previsto: <%= txn.fechaFin.toLocaleDateString('es-ES') %>
+                &mdash; <%= t('returns.endDate') %>: <%= txn.fechaFin.toLocaleDateString(lng) %>
               <% } %>
             </p>
           </div>
@@ -42,7 +42,7 @@
             <form method="POST" action="/dashboard/confirmar-devolucion/<%= txn.id %>">
               <input type="hidden" name="_csrf" value="<%= csrfToken %>">
               <button type="submit" class="bg-green-100 text-green-700 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-green-200 transition">
-                ✅ Confirmar devolución
+                <%= t('returns.confirmReturn') %>
               </button>
             </form>
           <% } %>
@@ -52,28 +52,28 @@
             <form method="POST" action="/dashboard/liberar-fianza/<%= txn.id %>">
               <input type="hidden" name="_csrf" value="<%= csrfToken %>">
               <button type="submit" class="bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-blue-200 transition">
-                💰 Devolver fianza
+                <%= t('returns.releaseDeposit') %>
               </button>
             </form>
           <% } %>
 
           <% if (['en_uso', 'devuelto'].includes(txn.estado) && !txn.fianzaBloqueada) { %>
             <!-- Reportar incidencia -->
-            <button type="button" onclick="toggleIncidentForm('<%= txn.id %>')"
+            <button type="button" data-toggle-incident="<%= txn.id %>"
               class="bg-red-100 text-red-700 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-red-200 transition">
-              ⚠️ Reportar incidencia
+              <%= t('returns.reportIncident') %>
             </button>
           <% } %>
 
           <% if (txn.fianzaBloqueada) { %>
             <span class="bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-xs font-medium">
-              🚫 Fianza bloqueada (incidencia)
+              <%= t('returns.depositBlocked') %>
             </span>
           <% } %>
 
           <% if (txn.fianzaDevuelta) { %>
             <span class="bg-green-50 text-green-600 px-3 py-1.5 rounded-lg text-xs font-medium">
-              ✅ Fianza devuelta
+              <%= t('returns.depositReleased') %>
             </span>
           <% } %>
         </div>
@@ -83,21 +83,21 @@
           <form method="POST" action="/dashboard/incidencia/<%= txn.id %>">
             <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <div class="mb-3">
-              <label class="block text-xs font-medium text-red-800 mb-1">Tipo de incidencia</label>
+              <label class="block text-xs font-medium text-red-800 mb-1"><%= t('returns.incidentType') %></label>
               <select name="tipo" required class="w-full border border-red-200 rounded-lg px-3 py-1.5 text-sm bg-white">
-                <option value="no_devuelto">No devuelto (robo)</option>
-                <option value="rotura">Rotura / Daño</option>
-                <option value="otro">Otro</option>
+                <option value="no_devuelto"><%= t('returns.notReturned') %></option>
+                <option value="rotura"><%= t('returns.breakage') %></option>
+                <option value="otro"><%= t('returns.other') %></option>
               </select>
             </div>
             <div class="mb-3">
-              <label class="block text-xs font-medium text-red-800 mb-1">Descripción</label>
+              <label class="block text-xs font-medium text-red-800 mb-1"><%= t('returns.incidentDesc') %></label>
               <textarea name="descripcion" rows="2" required minlength="5" maxlength="500"
-                placeholder="Describe qué ha pasado..."
+                placeholder=""
                 class="w-full border border-red-200 rounded-lg px-3 py-1.5 text-sm bg-white resize-y"></textarea>
             </div>
             <button type="submit" class="bg-red-600 text-white px-4 py-1.5 rounded-lg text-xs font-medium hover:bg-red-700 transition">
-              Enviar incidencia y bloquear fianza
+              <%= t('returns.submitIncident') %>
             </button>
           </form>
         </div>
@@ -107,8 +107,13 @@
 <% } %>
 
 <script>
-function toggleIncidentForm(id) {
-  const el = document.getElementById('incident-' + id);
-  el.classList.toggle('hidden');
-}
+(function() {
+  document.querySelectorAll('[data-toggle-incident]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var id = btn.getAttribute('data-toggle-incident');
+      var el = document.getElementById('incident-' + id);
+      if (el) el.classList.toggle('hidden');
+    });
+  });
+})();
 </script>

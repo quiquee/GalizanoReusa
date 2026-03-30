@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+@source "../../src/views/**/*.ejs";
+
+@theme {
+  --color-arena: #f5e6d3;
+  --color-mar: #0077b6;
+  --color-mar-oscuro: #023e8a;
+  --color-coral: #ff6b6b;
+  --color-verde: #2d6a4f;
+}
