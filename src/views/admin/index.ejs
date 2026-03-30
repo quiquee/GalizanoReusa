@@ -1,0 +1,171 @@
+<!-- Admin Dashboard -->
+<div class="max-w-5xl mx-auto">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Panel de Administración</h1>
+      <p class="text-sm text-gray-500 mt-0.5">Resumen de actividad de Galizano Reusa</p>
+    </div>
+    <nav class="flex gap-2 text-sm">
+      <a href="/admin/usuarios" class="bg-white border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition">👥 Usuarios</a>
+      <a href="/admin/objetos"  class="bg-white border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition">📦 Objetos</a>
+      <a href="/admin/actividad" class="bg-mar text-white px-3 py-1.5 rounded-lg hover:bg-mar-oscuro transition">📊 Actividad</a>
+    </nav>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+      <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Usuarios totales</p>
+      <p class="text-3xl font-bold text-gray-900"><%= kpis.totalUsuarios %></p>
+      <p class="text-xs text-emerald-600 mt-1">+<%= kpis.usuariosNuevos30d %> últimos 30 días</p>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+      <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Objetos totales</p>
+      <p class="text-3xl font-bold text-gray-900"><%= kpis.totalObjetos %></p>
+      <p class="text-xs text-emerald-600 mt-1">+<%= kpis.objetosNuevos30d %> últimos 30 días</p>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+      <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Sin devolver</p>
+      <p class="text-3xl font-bold <%= kpis.noDevueltos > 0 ? 'text-amber-500' : 'text-gray-900' %>"><%= kpis.noDevueltos %></p>
+      <p class="text-xs text-gray-400 mt-1">En uso / pagados</p>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 col-span-2 md:col-span-3">
+      <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Ingresos últimos 30 días</p>
+      <p class="text-3xl font-bold text-mar"><%= kpis.ingresos30d.toFixed(2) %> €</p>
+      <p class="text-xs text-gray-400 mt-1">Suma de transacciones completadas</p>
+    </div>
+  </div>
+
+  <!-- Actividad reciente + filtros -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-8">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+      <h2 class="text-base font-semibold text-gray-800">Actividad reciente</h2>
+      <form method="GET" action="/admin" class="flex flex-col sm:flex-row gap-2">
+        <input type="text" name="filtroUsuario" value="<%= filtroUsuario %>" placeholder="Filtrar usuario…"
+               class="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-mar focus:outline-none w-full sm:w-40">
+        <input type="text" name="filtroObjeto" value="<%= filtroObjeto %>" placeholder="Filtrar objeto…"
+               class="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-mar focus:outline-none w-full sm:w-40">
+        <button type="submit" class="text-sm bg-mar text-white px-4 py-1.5 rounded-lg hover:bg-mar-oscuro transition">Filtrar</button>
+        <% if (filtroUsuario || filtroObjeto) { %>
+          <a href="/admin" class="text-sm text-gray-500 px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-center">✕ Limpiar</a>
+        <% } %>
+      </form>
+    </div>
+
+    <% if (actividadFiltrada.length === 0) { %>
+      <p class="text-center text-gray-400 py-6 text-sm">No hay actividad que coincida con los filtros.</p>
+    <% } else { %>
+      <div class="overflow-x-auto -mx-1">
+        <table class="w-full text-sm min-w-[600px]">
+          <thead>
+            <tr class="text-left text-xs text-gray-500 uppercase tracking-wide border-b border-gray-100">
+              <th class="px-2 py-2">Objeto</th>
+              <th class="px-2 py-2">Cliente</th>
+              <th class="px-2 py-2">Tipo</th>
+              <th class="px-2 py-2">Importe</th>
+              <th class="px-2 py-2">Estado</th>
+              <th class="px-2 py-2">Fecha</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% actividadFiltrada.forEach(function(txn) { %>
+              <tr class="border-b border-gray-50 hover:bg-gray-50 transition">
+                <td class="px-2 py-2 font-medium text-mar-oscuro truncate max-w-[140px]"><%= txn.item.titulo %></td>
+                <td class="px-2 py-2 text-gray-600 truncate max-w-[140px]">
+                  <% if (txn.client) { %><%= txn.client.nombre %>
+                  <% } else if (txn.guestEmail) { %><span class="text-gray-400"><%= txn.guestEmail %></span>
+                  <% } else { %><span class="text-gray-300">—</span><% } %>
+                </td>
+                <td class="px-2 py-2 capitalize text-gray-600"><%= txn.tipo.replace(/_/g,' ') %></td>
+                <td class="px-2 py-2 font-semibold"><%= txn.importePago.toFixed(2) %> €</td>
+                <td class="px-2 py-2">
+                  <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium
+                    <%= txn.estado === 'en_uso'    ? 'bg-amber-100 text-amber-700' :
+                       txn.estado === 'pagado'     ? 'bg-blue-100 text-blue-700' :
+                       txn.estado === 'devuelto'   ? 'bg-green-100 text-green-700' :
+                       txn.estado === 'cerrado'    ? 'bg-gray-100 text-gray-600' :
+                       txn.estado === 'incidencia' ? 'bg-red-100 text-red-700' :
+                       'bg-gray-100 text-gray-500' %>">
+                    <%= txn.estado %>
+                  </span>
+                </td>
+                <td class="px-2 py-2 text-gray-400 whitespace-nowrap">
+                  <%= new Date(txn.createdAt).toLocaleDateString('es-ES', { day:'2-digit', month:'short' }) %>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+      <div class="mt-3 text-right">
+        <a href="/admin/actividad" class="text-xs text-mar hover:underline">Ver actividad completa →</a>
+      </div>
+    <% } %>
+  </div>
+
+  <!-- Columnas: Usuarios y Objetos recientes -->
+  <div class="grid md:grid-cols-2 gap-6">
+
+    <!-- Usuarios recientes -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-base font-semibold text-gray-800">Usuarios recientes</h2>
+        <a href="/admin/usuarios" class="text-xs text-mar hover:underline">Ver todos →</a>
+      </div>
+      <% if (usuariosRecientes.length === 0) { %>
+        <p class="text-sm text-gray-400 text-center py-4">Sin usuarios.</p>
+      <% } else { %>
+        <ul class="divide-y divide-gray-50">
+          <% usuariosRecientes.forEach(function(u) { %>
+            <li class="py-2 flex items-center justify-between gap-3">
+              <div class="min-w-0">
+                <p class="text-sm font-medium text-gray-800 truncate"><%= u.nombre %></p>
+                <p class="text-xs text-gray-400 truncate"><%= u.email %></p>
+              </div>
+              <div class="flex items-center gap-2 flex-shrink-0">
+                <span class="text-xs px-2 py-0.5 rounded-full
+                  <%= u.role === 'admin'     ? 'bg-purple-100 text-purple-700' :
+                     u.role === 'ofertante'  ? 'bg-blue-100 text-blue-700' :
+                     'bg-gray-100 text-gray-600' %>">
+                  <%= u.role %>
+                </span>
+                <a href="/admin/usuarios/<%= u.id %>/editar" class="text-xs text-mar hover:underline">Editar</a>
+              </div>
+            </li>
+          <% }); %>
+        </ul>
+      <% } %>
+    </div>
+
+    <!-- Objetos recientes -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-base font-semibold text-gray-800">Objetos recientes</h2>
+        <a href="/admin/objetos" class="text-xs text-mar hover:underline">Ver todos →</a>
+      </div>
+      <% if (objetosRecientes.length === 0) { %>
+        <p class="text-sm text-gray-400 text-center py-4">Sin objetos.</p>
+      <% } else { %>
+        <ul class="divide-y divide-gray-50">
+          <% objetosRecientes.forEach(function(o) { %>
+            <li class="py-2 flex items-center justify-between gap-3">
+              <div class="min-w-0">
+                <p class="text-sm font-medium text-gray-800 truncate"><%= o.titulo %></p>
+                <p class="text-xs text-gray-400"><%= new Date(o.createdAt).toLocaleDateString('es-ES') %></p>
+              </div>
+              <div class="flex items-center gap-2 flex-shrink-0">
+                <% if (!o.activo) { %>
+                  <span class="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600">Desactivado</span>
+                <% } %>
+                <a href="/admin/objetos/<%= o.slug %>/editar" class="text-xs text-mar hover:underline">Editar</a>
+              </div>
+            </li>
+          <% }); %>
+        </ul>
+      <% } %>
+    </div>
+  </div>
+
+</div>
