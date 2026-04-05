@@ -150,12 +150,14 @@ const itemRoutes = require('./routes/items');
 const dashboardRoutes = require('./routes/dashboard');
 const paymentRoutes = require('./routes/payments');
 const webhookRoutes = require('./routes/webhooks');
+const adminRoutes = require('./routes/admin');
 
 app.use('/auth', authLimiter, verifyCsrf, authRoutes);
 app.use('/items', itemRoutes);
 app.use('/dashboard', verifyCsrf, dashboardRoutes);
 app.use('/pay', verifyCsrf, paymentRoutes);
 app.use('/webhooks', webhookRoutes); // Sin CSRF (Stripe envía webhooks)
+app.use('/admin', verifyCsrf, adminRoutes);
 
 // Catálogo público de objetos
 const catalogoRoutes = require('./routes/catalogo');
