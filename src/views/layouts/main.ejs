@@ -29,7 +29,10 @@
             <a href="/dashboard" class="text-mar hover:underline"><%= t('nav.myPanel') %></a>
             <a href="/items/crear" class="bg-mar text-white px-3 py-1.5 rounded-lg hover:bg-mar-oscuro transition"><%= t('nav.addItem') %></a>
           <% } %>
-          <a href="/auth/logout" class="text-gray-500 hover:text-coral transition"><%= t('nav.logout') %></a>
+          <% if (user.role === 'admin') { %>
+            <a href="/admin" class="text-purple-600 hover:underline font-medium">Admin</a>
+          <% } %>
+          <a href="/auth/logout" class="text-gray-500 hover:text-coral transition">Salir</a>
         <% } else { %>
           <a href="/auth/login" class="text-mar hover:underline"><%= t('nav.login') %></a>
           <a href="/auth/registro-cliente" class="bg-mar text-white px-3 py-1.5 rounded-lg hover:bg-mar-oscuro transition"><%= t('nav.register') %></a>
