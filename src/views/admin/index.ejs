@@ -105,6 +105,25 @@
     <% } %>
   </div>
 
+  <!-- Estado de Stripe -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-8">
+    <h2 class="text-base font-semibold text-gray-800 mb-3">Estado de Stripe</h2>
+    <% if (stripeStatus.ok) { %>
+      <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">Conectado</span>
+      <span class="ml-2 text-sm text-gray-600"><%= stripeStatus.livemode ? 'Producción' : 'Modo test' %></span>
+      <p class="mt-1 text-sm text-gray-500">Saldo disponible:
+        <% if (stripeStatus.available.length > 0) { %>
+          <%= stripeStatus.available.map(b => b.amount + ' ' + b.currency).join(', ') %>
+        <% } else { %>
+          0.00
+        <% } %>
+      </p>
+    <% } else { %>
+      <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">Error</span>
+      <p class="mt-1 text-sm text-red-600"><%= stripeStatus.error %></p>
+    <% } %>
+  </div>
+
   <!-- Columnas: Usuarios y Objetos recientes -->
   <div class="grid md:grid-cols-2 gap-6">
 
@@ -169,3 +188,5 @@
   </div>
 
 </div>
+
+

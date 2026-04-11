@@ -3,6 +3,7 @@ const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const bcrypt = require('bcrypt');
 const prisma = require('../config/database');
+const stripe = require('../config/stripe');
 const { requireAdmin } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 
@@ -74,6 +75,20 @@ router.get('/', requireAdmin, async (req, res) => {
       );
     }
 
+    // Check Stripe API status
+    let stripeStatus;
+    try {
+      const balance = await stripe.balance.retrieve();
+      const available = balance.available || [];
+      stripeStatus = {
+        ok: true,
+        livemode: balance.livemode,
+        available: available.map(b => ({ amount: (b.amount / 100).toFixed(2), currency: b.currency.toUpperCase() })),
+      };
+    } catch (stripeErr) {
+      stripeStatus = { ok: false, error: stripeErr.message };
+    }
+
     res.render('admin/index', {
       title: 'Panel Administrador',
       kpis: {
@@ -89,6 +104,7 @@ router.get('/', requireAdmin, async (req, res) => {
       objetosRecientes,
       filtroUsuario: filtroUsuario || '',
       filtroObjeto:  filtroObjeto  || '',
+      stripeStatus,
     });
   } catch (err) {
     console.error('Admin index error:', err);
@@ -381,6 +397,22 @@ router.get('/actividad', requireAdmin, async (req, res) => {
     console.error('Admin actividad error:', err);
     req.flash('error', 'Error al cargar la actividad.');
     return res.redirect('/admin');
+  }
+});
+
+// ─── GET /admin/stripe-status ─── Verificar conexión con Stripe
+router.get('/stripe-status', requireAdmin, async (req, res) => {
+  try {
+    const balance = await stripe.balance.retrieve();
+    const available = balance.available || [];
+    res.json({
+      ok: true,
+      livemode: balance.livemode,
+      available: available.map(b => ({ amount: b.amount / 100, currency: b.currency })),
+    });
+  } catch (err) {
+    console.error('Stripe status check error:', err.message);
+    res.status(502).json({ ok: false, error: err.message });
   }
 });
 
