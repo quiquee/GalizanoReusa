@@ -145,6 +145,17 @@ router.get('/exito', async (req, res) => {
       }
     }
 
+    // Set cookie so guest can return the item by scanning QR again
+    if (txn.tipo !== 'venta' && txn.estado === 'en_uso') {
+      const rentalDuration = txn.tipo === 'alquiler_medio_dia' ? 12 : 24;
+      res.cookie(`gr_rental_${txn.itemId}`, txn.id, {
+        maxAge: (rentalDuration + 2) * 60 * 60 * 1000,
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+      });
+    }
+
     res.render('payments/exito', {
       title: req.t('payment.successTitle'),
       transaction: txn,

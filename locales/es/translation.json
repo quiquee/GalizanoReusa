@@ -247,7 +247,39 @@
     "stripeDeposit": "Fianza (reembolsable): {{title}}",
     "sale": "Compra",
     "rent_half": "Alquiler medio día",
-    "rent_full": "Alquiler día entero"
+    "rent_full": "Alquiler día entero",
+    "rentalInstructions": "Instrucciones para la devolución",
+    "instruction1": "Disfruta del objeto durante el periodo alquilado.",
+    "instruction2": "Al terminar, escanea de nuevo el código QR del objeto.",
+    "instruction3": "Deja el objeto como lo encontraste originalmente.",
+    "instruction4": "Sube una foto del objeto y confirma la devolución.",
+    "returnBefore": "Devolver antes de"
+  },
+
+  "returnFlow": {
+    "title": "Devolver objeto",
+    "step1": "Deja el objeto exactamente como lo encontraste.",
+    "step2": "Toma una foto del objeto en su sitio.",
+    "photoLabel": "Foto del objeto devuelto",
+    "photoHint": "Haz una foto mostrando el objeto en su lugar original.",
+    "confirmButton": "Confirmar devolución",
+    "depositNote": "Tu fianza se devolverá automáticamente si todo está correcto.",
+    "notFound": "No se encontró un alquiler activo para este objeto.",
+    "error": "Se produjo un error. Inténtalo de nuevo.",
+    "thanksTitle": "¡Gracias!",
+    "thanksDesc": "Has devuelto el objeto correctamente. ¡Gracias por contribuir a la economía circular!",
+    "depositWillReturn": "se devolverá",
+    "rateTitle": "Valora tu experiencia",
+    "rateItem": "¿Cómo valoras el objeto?",
+    "rateExperience": "¿Cómo valoras tu experiencia con Galizano Reusa?",
+    "submitRating": "Enviar valoración",
+    "ratingThanks": "¡Gracias por tu valoración!",
+    "alreadyRated": "Ya has valorado esta experiencia.",
+    "shareTitle": "Comparte tu experiencia",
+    "shareDesc": "Ayúdanos a construir un mundo mejor compartiendo tu experiencia.",
+    "shareText": "Contribuyo a un mundo mejor usando #GalizanoReusa 🌊♻️",
+    "registerTitle": "¿Te ha gustado? ¡Regístrate!",
+    "registerDesc": "Al registrarte, no necesitarás pagar fianza en futuros alquileres."
   },
 
   "error": {

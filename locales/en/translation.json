@@ -247,7 +247,39 @@
     "stripeDeposit": "Deposit (refundable): {{title}}",
     "sale": "Purchase",
     "rent_half": "Half-day rental",
-    "rent_full": "Full-day rental"
+    "rent_full": "Full-day rental",
+    "rentalInstructions": "Return instructions",
+    "instruction1": "Enjoy the item during your rental period.",
+    "instruction2": "When finished, scan the item's QR code again.",
+    "instruction3": "Leave the item as you originally found it.",
+    "instruction4": "Upload a photo of the item and confirm the return.",
+    "returnBefore": "Return before"
+  },
+
+  "returnFlow": {
+    "title": "Return item",
+    "step1": "Leave the item exactly as you found it.",
+    "step2": "Take a photo of the item in its place.",
+    "photoLabel": "Photo of the returned item",
+    "photoHint": "Take a photo showing the item in its original location.",
+    "confirmButton": "Confirm return",
+    "depositNote": "Your deposit will be automatically refunded if everything is in order.",
+    "notFound": "No active rental found for this item.",
+    "error": "An error occurred. Please try again.",
+    "thanksTitle": "Thank you!",
+    "thanksDesc": "You have returned the item successfully. Thanks for contributing to the circular economy!",
+    "depositWillReturn": "will be refunded",
+    "rateTitle": "Rate your experience",
+    "rateItem": "How do you rate the item?",
+    "rateExperience": "How do you rate your Galizano Reusa experience?",
+    "submitRating": "Submit rating",
+    "ratingThanks": "Thanks for your rating!",
+    "alreadyRated": "You have already rated this experience.",
+    "shareTitle": "Share your experience",
+    "shareDesc": "Help us build a better world by sharing your experience.",
+    "shareText": "I'm contributing to a better world using #GalizanoReusa 🌊♻️",
+    "registerTitle": "Enjoyed it? Register!",
+    "registerDesc": "By registering, you won't need to pay a deposit on future rentals."
   },
 
   "error": {

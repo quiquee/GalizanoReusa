@@ -99,6 +99,7 @@ model Transaction {
   fechaInicio     DateTime @default(now())
   fechaFin        DateTime? // Fecha prevista de devolución
   fechaDevolucion DateTime? // Fecha real de devolución/check-in
+  returnPhoto     String?   // Ruta de la foto de devolución
   fianzaDevuelta  Boolean  @default(false)
   fianzaBloqueada Boolean  @default(false)
 
@@ -106,6 +107,7 @@ model Transaction {
   updatedAt       DateTime @updatedAt
 
   incidents       Incident[]
+  ratings         Rating[]
 }
 
 // ─── Módulo 5: Gestión de Incidencias ───
@@ -125,6 +127,19 @@ model Incident {
   estado          String   @default("abierta") // 'abierta' | 'resuelta'
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+}
+
+// ─── Módulo 6: Valoraciones ───
+
+model Rating {
+  id              String   @id @default(uuid())
+  transactionId   String
+  transaction     Transaction @relation(fields: [transactionId], references: [id])
+
+  itemRating        Int      // 1-5 estrellas para el objeto
+  experienceRating  Int      // 1-5 estrellas para la experiencia GalizanoReusa
+
+  createdAt       DateTime @default(now())
 }
 
 // ─── Sesiones (para express-session con Prisma) ───

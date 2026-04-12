@@ -6,3 +6,6 @@ public/uploads/*
 !public/uploads/.gitkeep
 *.log
 .DS_Store
+stripe-products.json
+.gitignore
+.env.sandbox

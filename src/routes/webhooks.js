@@ -19,41 +19,45 @@ router.post('/stripe', async (req, res) => {
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  switch (event.type) {
-    case 'checkout.session.completed': {
-      const session = event.data.object;
-      const transactionId = session.metadata?.transactionId;
+  try {
+    switch (event.type) {
+      case 'checkout.session.completed': {
+        const session = event.data.object;
+        const transactionId = session.metadata?.transactionId;
 
-      if (transactionId) {
-        await prisma.transaction.update({
-          where: { id: transactionId },
-          data: {
-            estado: 'pagado',
-            stripePaymentIntentId: session.payment_intent,
-          },
-        });
-
-        // Marcar como 'en_uso' para alquileres
-        const txn = await prisma.transaction.findUnique({ where: { id: transactionId } });
-        if (txn && txn.tipo !== 'venta') {
-          await prisma.transaction.update({
+        if (transactionId) {
+          const txn = await prisma.transaction.findUnique({
             where: { id: transactionId },
-            data: { estado: 'en_uso' },
+            include: { item: true },
           });
+
+          if (txn && txn.estado === 'pendiente') {
+            const newEstado = txn.tipo !== 'venta' ? 'en_uso' : 'pagado';
+            await prisma.transaction.update({
+              where: { id: transactionId },
+              data: {
+                estado: newEstado,
+                stripePaymentIntentId: session.payment_intent,
+              },
+            });
+            console.log(`Webhook: Transaction ${transactionId} → ${newEstado} (${txn.item.titulo})`);
+          }
         }
+        break;
       }
-      break;
-    }
 
-    case 'payment_intent.payment_failed': {
-      const paymentIntent = event.data.object;
-      console.error('Payment failed:', paymentIntent.id);
-      break;
-    }
+      case 'payment_intent.payment_failed': {
+        const paymentIntent = event.data.object;
+        console.error('Payment failed:', paymentIntent.id);
+        break;
+      }
 
-    default:
-      // Evento no gestionado
-      break;
+      default:
+        // Evento no gestionado
+        break;
+    }
+  } catch (err) {
+    console.error('Webhook processing error:', err);
   }
 
   res.json({ received: true });

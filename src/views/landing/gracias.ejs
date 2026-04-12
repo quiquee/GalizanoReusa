@@ -1,0 +1,116 @@
+<%# Thank you page: rating + social share + register CTA %>
+
+<div class="mb-6 text-center">
+  <div class="text-5xl mb-3">🎉</div>
+  <h1 class="text-xl font-bold text-mar-oscuro mb-1"><%= t('returnFlow.thanksTitle') %></h1>
+  <p class="text-sm text-gray-500"><%= t('returnFlow.thanksDesc') %></p>
+</div>
+
+<div class="bg-white rounded-2xl shadow-md p-5 mb-4">
+  <h2 class="font-semibold text-gray-800 mb-1 text-sm"><%= transaction.item.titulo %></h2>
+  <dl class="space-y-1 text-sm">
+    <div class="flex justify-between">
+      <dt class="text-gray-500"><%= t('payment.type') %></dt>
+      <dd class="font-medium capitalize"><%= transaction.tipo.replace(/_/g, ' ') %></dd>
+    </div>
+    <div class="flex justify-between">
+      <dt class="text-gray-500"><%= t('payment.amount') %></dt>
+      <dd class="font-medium"><%= transaction.importePago.toFixed(2) %> €</dd>
+    </div>
+    <% if (transaction.importeFianza > 0) { %>
+      <div class="flex justify-between">
+        <dt class="text-gray-500"><%= t('payment.deposit') %></dt>
+        <dd class="font-medium text-green-600"><%= transaction.importeFianza.toFixed(2) %> € — <%= t('returnFlow.depositWillReturn') %></dd>
+      </div>
+    <% } %>
+  </dl>
+</div>
+
+<% if (isRegistered && !alreadyRated) { %>
+  <!-- Rating form -->
+  <div class="bg-white rounded-2xl shadow-md p-5 mb-4">
+    <h2 class="font-semibold text-gray-800 mb-3 text-sm"><%= t('returnFlow.rateTitle') %></h2>
+    <form method="POST" action="/o/<%= transaction.item.slug %>/valorar/<%= transaction.id %>">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+      <!-- Item rating -->
+      <div class="mb-4">
+        <label class="block text-sm text-gray-600 mb-1"><%= t('returnFlow.rateItem') %></label>
+        <div class="flex gap-1 star-group" data-input="itemRating">
+          <% for (let i = 1; i <= 5; i++) { %>
+            <button type="button" data-value="<%= i %>" class="text-2xl text-gray-300 hover:text-yellow-400 transition star-btn">★</button>
+          <% } %>
+        </div>
+        <input type="hidden" name="itemRating" value="0">
+      </div>
+
+      <!-- Experience rating -->
+      <div class="mb-4">
+        <label class="block text-sm text-gray-600 mb-1"><%= t('returnFlow.rateExperience') %></label>
+        <div class="flex gap-1 star-group" data-input="experienceRating">
+          <% for (let i = 1; i <= 5; i++) { %>
+            <button type="button" data-value="<%= i %>" class="text-2xl text-gray-300 hover:text-yellow-400 transition star-btn">★</button>
+          <% } %>
+        </div>
+        <input type="hidden" name="experienceRating" value="0">
+      </div>
+
+      <button type="submit"
+              class="w-full bg-mar text-white py-2.5 rounded-xl font-semibold hover:bg-mar-oscuro transition">
+        <%= t('returnFlow.submitRating') %>
+      </button>
+    </form>
+  </div>
+
+  <script>
+    document.querySelectorAll('.star-group').forEach(function(group) {
+      var inputName = group.dataset.input;
+      var input = group.parentElement.querySelector('input[name="' + inputName + '"]');
+      var stars = group.querySelectorAll('.star-btn');
+      stars.forEach(function(star) {
+        star.addEventListener('click', function() {
+          var val = parseInt(star.dataset.value);
+          input.value = val;
+          stars.forEach(function(s) {
+            s.classList.toggle('text-yellow-400', parseInt(s.dataset.value) <= val);
+            s.classList.toggle('text-gray-300', parseInt(s.dataset.value) > val);
+          });
+        });
+      });
+    });
+  </script>
+<% } else if (alreadyRated) { %>
+  <div class="bg-green-50 border border-green-200 rounded-xl p-4 mb-4 text-sm text-green-800 text-center">
+    ⭐ <%= t('returnFlow.ratingThanks') %>
+  </div>
+<% } %>
+
+<!-- Social share -->
+<div class="bg-white rounded-2xl shadow-md p-5 mb-4 text-center">
+  <h2 class="font-semibold text-gray-800 mb-2 text-sm"><%= t('returnFlow.shareTitle') %></h2>
+  <p class="text-xs text-gray-500 mb-3"><%= t('returnFlow.shareDesc') %></p>
+  <% const shareText = encodeURIComponent(t('returnFlow.shareText')); %>
+  <% const shareUrl = encodeURIComponent(baseUrl || ''); %>
+  <div class="flex justify-center gap-3">
+    <a href="https://twitter.com/intent/tweet?text=<%= shareText %>&url=<%= shareUrl %>" target="_blank" rel="noopener noreferrer"
+       class="bg-black text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition">𝕏 Twitter</a>
+    <a href="https://www.facebook.com/sharer/sharer.php?quote=<%= shareText %>&u=<%= shareUrl %>" target="_blank" rel="noopener noreferrer"
+       class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition">Facebook</a>
+    <a href="https://wa.me/?text=<%= shareText %>%20<%= shareUrl %>" target="_blank" rel="noopener noreferrer"
+       class="bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-600 transition">WhatsApp</a>
+  </div>
+</div>
+
+<% if (!isRegistered) { %>
+  <!-- Registration CTA -->
+  <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-4 text-center">
+    <h2 class="font-semibold text-gray-800 mb-2 text-sm"><%= t('returnFlow.registerTitle') %></h2>
+    <p class="text-xs text-gray-600 mb-3"><%= t('returnFlow.registerDesc') %></p>
+    <a href="/auth/registro-cliente"
+       class="inline-block bg-mar text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-mar-oscuro transition">
+      <%= t('nav.register') %>
+    </a>
+  </div>
+<% } %>
+
+<a href="/" class="block text-center text-sm text-mar hover:underline mt-4"><%= t('payment.backHome') %></a>

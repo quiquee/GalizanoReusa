@@ -247,7 +247,39 @@
     "stripeDeposit": "Kaution (erstattungsfähig): {{title}}",
     "sale": "Kauf",
     "rent_half": "Halbtags-Miete",
-    "rent_full": "Ganztags-Miete"
+    "rent_full": "Ganztags-Miete",
+    "rentalInstructions": "Rückgabeanweisungen",
+    "instruction1": "Genießen Sie das Objekt während Ihrer Mietzeit.",
+    "instruction2": "Scannen Sie am Ende den QR-Code des Objekts erneut.",
+    "instruction3": "Lassen Sie das Objekt so zurück, wie Sie es vorgefunden haben.",
+    "instruction4": "Laden Sie ein Foto des Objekts hoch und bestätigen Sie die Rückgabe.",
+    "returnBefore": "Rückgabe vor"
+  },
+
+  "returnFlow": {
+    "title": "Objekt zurückgeben",
+    "step1": "Lassen Sie das Objekt genau so zurück, wie Sie es vorgefunden haben.",
+    "step2": "Machen Sie ein Foto des Objekts an seinem Platz.",
+    "photoLabel": "Foto des zurückgegebenen Objekts",
+    "photoHint": "Machen Sie ein Foto, das das Objekt an seinem ursprünglichen Standort zeigt.",
+    "confirmButton": "Rückgabe bestätigen",
+    "depositNote": "Ihre Kaution wird automatisch erstattet, wenn alles in Ordnung ist.",
+    "notFound": "Keine aktive Miete für dieses Objekt gefunden.",
+    "error": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+    "thanksTitle": "Vielen Dank!",
+    "thanksDesc": "Sie haben das Objekt erfolgreich zurückgegeben. Danke, dass Sie zur Kreislaufwirtschaft beitragen!",
+    "depositWillReturn": "wird erstattet",
+    "rateTitle": "Bewerten Sie Ihre Erfahrung",
+    "rateItem": "Wie bewerten Sie das Objekt?",
+    "rateExperience": "Wie bewerten Sie Ihre Galizano Reusa Erfahrung?",
+    "submitRating": "Bewertung abgeben",
+    "ratingThanks": "Danke für Ihre Bewertung!",
+    "alreadyRated": "Sie haben diese Erfahrung bereits bewertet.",
+    "shareTitle": "Teilen Sie Ihre Erfahrung",
+    "shareDesc": "Helfen Sie uns, eine bessere Welt aufzubauen, indem Sie Ihre Erfahrung teilen.",
+    "shareText": "Ich trage zu einer besseren Welt bei mit #GalizanoReusa 🌊♻️",
+    "registerTitle": "Hat es Ihnen gefallen? Registrieren Sie sich!",
+    "registerDesc": "Durch die Registrierung entfällt die Kaution bei zukünftigen Mieten."
   },
 
   "error": {

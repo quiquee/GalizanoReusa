@@ -165,7 +165,7 @@ app.use('/catalogo', catalogoRoutes);
 
 // Landing page del objeto (público, QR apunta aquí)
 const landingRoutes = require('./routes/landing');
-app.use('/o', landingRoutes);
+app.use('/o', verifyCsrf, landingRoutes);
 
 // Home
 app.get('/', (req, res) => {

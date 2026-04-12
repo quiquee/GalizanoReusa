@@ -28,12 +28,26 @@
   </div>
 
   <% if (transaction.tipo !== 'venta') { %>
+    <!-- Rental instructions -->
     <div class="bg-sky-50 border border-sky-200 rounded-xl p-4 mt-4 text-sm text-sky-800 text-left">
-      <p><strong>📍 <%= t('payment.reminder') %></strong></p>
-      <% if (transaction.importeFianza > 0) { %>
-        <p class="mt-2"><%- t('payment.depositInfo') %></p>
+      <p class="font-semibold mb-2">📋 <%= t('payment.rentalInstructions') %></p>
+      <ol class="list-decimal list-inside space-y-1.5 text-xs">
+        <li><%= t('payment.instruction1') %></li>
+        <li><%= t('payment.instruction2') %></li>
+        <li><%= t('payment.instruction3') %></li>
+        <li><%= t('payment.instruction4') %></li>
+      </ol>
+      <% if (transaction.fechaFin) { %>
+        <p class="mt-3 text-xs font-medium text-sky-900">
+          ⏰ <%= t('payment.returnBefore') %>: <strong><%= new Date(transaction.fechaFin).toLocaleString(lng, { dateStyle: 'medium', timeStyle: 'short' }) %></strong>
+        </p>
       <% } %>
     </div>
+    <% if (transaction.importeFianza > 0) { %>
+      <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 mt-3 text-xs text-amber-800 text-left">
+        <p><%- t('payment.depositInfo') %></p>
+      </div>
+    <% } %>
   <% } %>
 
   <a href="/" class="inline-block mt-6 text-mar hover:underline text-sm"><%= t('payment.backHome') %></a>

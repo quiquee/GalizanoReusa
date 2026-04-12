@@ -1,0 +1,34 @@
+<%# Return page: upload photo of item as left %>
+
+<div class="mb-6 text-center">
+  <div class="text-5xl mb-3">📦</div>
+  <h1 class="text-xl font-bold text-mar-oscuro mb-1"><%= t('returnFlow.title') %></h1>
+  <p class="text-sm text-gray-500"><%= transaction.item.titulo %></p>
+</div>
+
+<div class="bg-white rounded-2xl shadow-md p-5 mb-4">
+  <div class="space-y-3 text-sm text-gray-700">
+    <p>📍 <strong><%= t('returnFlow.step1') %></strong></p>
+    <p>📸 <strong><%= t('returnFlow.step2') %></strong></p>
+  </div>
+
+  <form method="POST" action="/o/<%= transaction.item.slug %>/devolver/<%= transaction.id %>" enctype="multipart/form-data" class="mt-5">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+    <label class="block mb-2 text-sm font-medium text-gray-700"><%= t('returnFlow.photoLabel') %></label>
+    <div class="relative">
+      <input type="file" name="returnPhoto" accept="image/jpeg,image/png,image/webp" capture="environment" required
+             class="block w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-mar/10 file:text-mar hover:file:bg-mar/20 cursor-pointer">
+    </div>
+    <p class="text-xs text-gray-400 mt-1"><%= t('returnFlow.photoHint') %></p>
+
+    <button type="submit"
+            class="w-full mt-5 bg-verde text-white py-3 rounded-xl font-semibold text-lg hover:bg-green-700 transition shadow-lg">
+      ✅ <%= t('returnFlow.confirmButton') %>
+    </button>
+  </form>
+</div>
+
+<div class="bg-sky-50 border border-sky-200 rounded-xl p-4 text-sm text-sky-800">
+  <p><strong><%= t('returnFlow.depositNote') %></strong></p>
+</div>

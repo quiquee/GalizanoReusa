@@ -1,0 +1,198 @@
+# Galizano Reusa — Documentación
+
+Como analista de sistemas, el diseño de la aplicación web **Galizano Reusa** se estructura en módulos funcionales que soportan la lógica de negocio de la economía circular, garantizando transacciones seguras, gestión de inventario descentralizado y control de riesgos (daños o robos).
+
+A continuación, se detalla la arquitectura funcional de la aplicación web y las instrucciones de uso para los usuarios.
+
+---
+
+## Especificación de Funcionalidades (Visión de Analista de Sistemas)
+
+### 1. Módulo de Gestión de Usuarios y Autenticación (Identity Access Management)
+
+**Registro de Clientes** (Usuarios que disponen del objeto): El sistema permite la creación de cuentas mediante correo electrónico y contraseña. El registro captura los siguientes datos obligatorios: Nombre completo, Dirección, DNI/NIE y Contraseña (mín. 8 caracteres). La cuenta se marca automáticamente como "Usuario Verificado" (`emailVerified = true`), lo que actúa como regla de negocio para eximir al usuario del pago de fianza. Adicionalmente, se permite el registro y login mediante proveedores OAuth: **Google** y **Facebook**.
+
+**Registro de Ofertantes** (Propietarios): Requiere un alta específica que incluye la vinculación de una cuenta bancaria (IBAN) destino para liquidar los ingresos generados. Existe tanto un registro directo como ofertante (con nombre, email, contraseña e IBAN) como un flujo de *upgrade* para usuarios ya registrados como clientes (solo requiere IBAN y opcionalmente DNI). El sistema enmascara la identidad de este usuario de cara al público para garantizar un servicio completamente anónimo.
+
+**Modo Invitado** (Usuarios no registrados): El sistema permite el flujo completo de transacción para usuarios anónimos, forzando por regla de negocio el cobro automático de la fianza definida por el ofertante.
+
+**Roles del sistema:**
+
+| Rol | Permisos |
+|---|---|
+| **Cliente** | Navegar el catálogo, escanear QR, alquilar/comprar objetos, devolver objetos y valorar experiencias. |
+| **Ofertante** | Todo lo anterior + panel de gestión: crear/editar objetos, gestionar devoluciones, reportar incidencias y liberar fianzas. |
+| **Administrador** | Acceso completo al panel de administración con KPIs, gestión de usuarios y objetos, registro de actividad con filtros y verificación del estado de la API de Stripe. |
+
+### 2. Módulo de Gestión de Inventario y Catálogo (CRUD de Artículos)
+
+**Creación de activos:** Interfaz para que el ofertante dé de alta un objeto (ej. tablas de surf, gafas de bucear, sombrillas). Permite la carga de hasta **5 fotografías** (JPEG, PNG o WebP, máx. 5 MB por archivo) y la entrada de texto para título y descripción.
+
+**Configuración de Modelo de Negocio:** El sistema ofrece selectores paramétricos para definir el tipo de transacción permitida por objeto:
+
+- Solo venta
+- Alquiler medio día
+- Alquiler día entero
+- Ambos alquileres
+- Todos (venta + alquiler)
+
+**Gestión de Riesgos (Fianza):** Campo numérico obligatorio donde el ofertante define el importe de la fianza (mínimo 0,01 €).
+
+**Edición de artículos:** El propietario puede editar los datos de sus objetos, añadir más fotos (hasta un total de 5) y activar/desactivar objetos.
+
+**Catálogo público:** Todos los objetos activos se muestran en una página pública accesible desde `/catalogo`, ordenados por fecha de creación descendente.
+
+### 3. Módulo de Interfaz Física/Digital (Motor QR)
+
+**Generador y Enrutador QR:** El sistema genera una URL única por cada objeto dado de alta (basada en un *slug* URL-friendly del título) y la asocia a un código QR (formato PNG, 400px, corrección de errores nivel H). Cuando el código QR es escaneado por la cámara de un smartphone, el sistema enruta al usuario a la Landing Page específica del objeto (`/o/:slug`), mostrando dinámicamente la descripción, fotografías y las tarifas vigentes. El QR se regenera con la `BASE_URL` actual cada vez que se visualiza.
+
+**Detección de alquiler activo:** Cuando un usuario escanea el QR de un objeto que tiene actualmente alquilado, el sistema lo detecta (por sesión de usuario logueado o por cookie de seguimiento para invitados) y lo redirige directamente al flujo de devolución en lugar de mostrar la página de pago.
+
+### 4. Módulo de Pasarela de Pagos (Integración API Stripe)
+
+**Motor transaccional:** Integración directa con la API de **Stripe Checkout** para procesar los cobros. Se crea una sesión de Checkout con líneas separadas para el importe del alquiler/venta y la fianza (cuando aplica).
+
+**Lógica de fianza:**
+
+- La fianza **nunca** se cobra en compras (venta).
+- Para alquileres, solo se cobra a usuarios **no verificados** (invitados o no registrados).
+- Los usuarios registrados con cuenta verificada están **exentos** del pago de fianza.
+
+**Confirmación de pago dual:** El estado de la transacción se confirma tanto mediante la verificación directa con la API de Stripe en la página de éxito (`success_url` con `session_id`) como mediante el webhook de Stripe (`checkout.session.completed`). Ambos mecanismos actualizan el estado: ventas pasan a `pagado`, alquileres pasan a `en_uso`.
+
+**Webhook de Stripe:** El endpoint `POST /webhooks/stripe` recibe eventos de Stripe, verifica la firma con `STRIPE_WEBHOOK_SECRET` y procesa:
+
+- `checkout.session.completed` → actualiza la transacción a `en_uso` (alquiler) o `pagado` (venta), y almacena el Payment Intent ID.
+- `payment_intent.payment_failed` → registra el fallo en los logs del servidor.
+
+**Cookie de seguimiento:** Al completar un pago de alquiler, se establece una cookie httpOnly (`gr_rental_{itemId}`) con el ID de la transacción. Esta cookie permite que los usuarios invitados sean reconocidos al escanear de nuevo el QR para devolver el objeto.
+
+### 5. Módulo de Devolución por el Cliente (Flujo de Cierre mediante QR)
+
+**Flujo de devolución:** Al finalizar el periodo de alquiler, el cliente escanea de nuevo el código QR del objeto. El sistema detecta que tiene un alquiler activo y le muestra la página de devolución, con los siguientes pasos:
+
+1. Dejar el objeto exactamente como lo encontró originalmente.
+2. Tomar una foto del objeto en su lugar original usando la cámara del móvil (captura directa con la cámara trasera).
+3. Subir la foto y confirmar la devolución.
+
+La foto se almacena en el servidor y la transacción pasa al estado `devuelto` con la fecha de devolución registrada.
+
+**Página de agradecimiento:** Tras confirmar la devolución, el usuario ve una página con:
+
+- **Resumen** de la transacción (objeto, tipo, importe, estado de la fianza).
+- **Formulario de valoración** (solo para usuarios registrados): dos escalas de estrellas de 1 a 5, una para el objeto y otra para la experiencia con Galizano Reusa.
+- **Botones de compartir** en redes sociales (Twitter/X, Facebook, WhatsApp) con el texto *"Contribuyo a un mundo mejor usando #GalizanoReusa 🌊♻️"*.
+- **Llamada a registrarse** (solo para usuarios invitados) con el mensaje de que al registrarse no necesitarán pagar fianza en futuros alquileres.
+
+### 6. Módulo de Auditoría y Gestión de Devoluciones (Panel del Ofertante)
+
+**Panel del ofertante:** Accesible desde `/dashboard`, muestra los objetos del ofertante y sus transacciones activas.
+
+**Gestión de devoluciones** (`/dashboard/devoluciones`): Lista los alquileres con estado `en_uso` o `devuelto`, ordenados por fecha de fin prevista. Incluye la foto de devolución subida por el cliente cuando está disponible.
+
+**Acciones disponibles para el ofertante:**
+
+| Acción | Descripción |
+|---|---|
+| **Confirmar devolución** | Marca la transacción como `devuelto` y registra la fecha de devolución (también puede ser confirmada por el cliente al escanear el QR). |
+| **Liberar fianza** | Ejecuta un reembolso parcial vía la API de Stripe (solo la parte de la fianza) al Payment Intent original. Marca la transacción como `cerrado`. |
+| **Reportar incidencia** | Permite seleccionar tipo (no devuelto, rotura, otro) y descripción. Crea un registro de incidencia, bloquea la fianza y marca la transacción como `incidencia`. |
+
+**Máquina de estados de la transacción:**
+
+```
+pendiente → pagado         (venta, confirmado por webhook o página de éxito)
+pendiente → en_uso         (alquiler, confirmado por webhook o página de éxito)
+en_uso   → devuelto        (por devolución del cliente vía QR o confirmación del ofertante)
+devuelto → cerrado         (al liberar la fianza)
+en_uso / devuelto → incidencia  (al reportar incidencia, fianza bloqueada)
+```
+
+### 7. Módulo de Administración
+
+**Panel de administración** (`/admin`): Accesible solo para usuarios con rol `admin`. Incluye:
+
+- **KPIs:** Total de usuarios, nuevos usuarios (30 días), total de objetos, nuevos objetos (30 días), alquileres sin devolver, ingresos últimos 30 días.
+- **Verificación de Stripe:** Vista en tiempo real del estado de conexión con la API de Stripe (Conectado/Error), modo (Producción/Test) y saldo disponible. Se comprueba automáticamente al cargar el panel.
+- **Gestión de usuarios:** Listado con filtros por nombre/email/DNI y por rol. Edición completa de datos de usuario incluyendo cambio de rol y reseteo de contraseña.
+- **Gestión de objetos:** Listado con filtros por título/descripción y estado activo/inactivo. Edición completa de datos del objeto, incluida la gestión de fotos y activación/desactivación.
+- **Registro de actividad** (`/admin/actividad`): Historial de transacciones con filtros avanzados por usuario, objeto, estado y rango de fechas. Muestra hasta 50 transacciones con totales de ingresos.
+
+### 8. Módulo de Internacionalización (i18n)
+
+El sistema soporta **4 idiomas**: Español (por defecto), Inglés, Francés y Alemán.
+
+La detección del idioma sigue el orden:
+
+1. Parámetro `?lng=xx` en la URL
+2. Cookie `i18next`
+3. Cabecera `Accept-Language` del navegador
+
+Cambio de idioma manual disponible en la interfaz mediante selector de idioma (bandera) que establece una cookie con validez de 1 año.
+
+### 9. Módulo de Seguridad
+
+| Medida | Detalle |
+|---|---|
+| **HTTPS y cabeceras** | Helmet configurado con Content Security Policy personalizada para permitir Stripe, Google Fonts y recursos propios. |
+| **Limitación de peticiones** | Rate limiting global (1000 req/15 min) y estricto para autenticación (50 req/15 min). |
+| **Protección CSRF** | Implementación personalizada con HMAC-SHA256 basada en el secreto de sesión. Aplicada a todas las rutas excepto webhooks de Stripe. |
+| **Validación de entrada** | express-validator con sanitización `escape()` para prevención de XSS. |
+| **Sesiones** | Cookies httpOnly, secure en producción, sameSite lax, duración 24 horas. |
+| **Contraseñas** | bcrypt con 12 rondas de sal. |
+| **Protección de datos** | Página de privacidad (`/privacidad`) con 8 secciones conformes al RGPD (UE), incluyendo derechos ARCO, periodo de retención de datos y contacto del DPO. |
+
+### 10. Infraestructura
+
+| Componente | Tecnología |
+|---|---|
+| **Base de datos** | SQLite vía Prisma ORM. Modelos: User, Item, Transaction, Incident, Rating, Session. |
+| **Despliegue** | Docker multi-stage (build + producción) con Node.js 22 Alpine. Volúmenes persistentes para BD y uploads. Variables de entorno vía `docker-compose.yml`. |
+| **Motor de plantillas** | EJS con layouts (`main` para la app autenticada, `landing` para las páginas QR/públicas). |
+| **CSS** | Tailwind CSS compilado en el build de Docker. |
+
+---
+
+## Manual de Instrucciones de Uso de la App Web
+
+La aplicación está diseñada para ser intuitiva tanto para quien aporta objetos como para quien los utiliza en la playa o parking.
+
+### 👤 Instrucciones para el Ofertante (Quien pone a disposición el objeto)
+
+1. **Regístrate en la plataforma:** Crea tu cuenta con tu nombre, email y contraseña, e introduce tu IBAN bancario. También puedes registrarte con Google o Facebook y luego añadir tus datos bancarios desde tu perfil. Esto es imprescindible para que podamos ingresarte el dinero a través de Stripe. Tu identidad siempre será anónima para los demás.
+
+2. **Sube tu objeto:** Toca el botón "Añadir objeto". Sube hasta 5 fotos del artículo (palas, balones, tablas, etc.) en formato JPEG, PNG o WebP y escribe un título y una descripción detallada.
+
+3. **Configura el precio y la fianza:** Elige si quieres vender el objeto, alquilarlo, o ambas cosas. Si es alquiler, marca el precio por "medio día" y/o "un día entero". Es obligatorio fijar un importe de fianza que proteja tu objeto en caso de usuarios no registrados.
+
+4. **Coloca el objeto:** Imprime el código QR generado por la app y colócalo junto o pegado al objeto en el espacio público designado (ej. a pie de playa o en el parking).
+
+5. **Revisa tus devoluciones:** Accede a la sección "Devoluciones" de tu panel. Verás los alquileres activos y los devueltos, incluyendo la foto que el cliente ha tomado al devolver el objeto. Si todo está correcto, libera la fianza. Si el objeto no ha sido devuelto o presenta daños, reporta una incidencia para bloquear la fianza y quedártela.
+
+### 🏖️ Instrucciones para el Cliente (Quien usa el objeto)
+
+1. **Escanea el código QR:** Cuando veas un objeto que necesites en la playa (una sombrilla, palas, etc.), simplemente abre la cámara de tu móvil y escanea el código QR que tiene pegado.
+
+2. **Elige tu tarifa:** Se abrirá una página web mostrándote las fotos, la descripción y los precios. Elige si quieres usarlo medio día, un día entero, o comprarlo.
+
+3. **Decide si quieres registrarte:**
+   - **Opción A** (Recomendada): Crea una cuenta con tu Nombre, Dirección, DNI y verifica tu email (o regístrate con Google/Facebook). Si haces esto, podrás llevarte el objeto **sin pagar fianza**.
+   - **Opción B:** Continúa sin registrarte. En este caso, el sistema te cobrará el alquiler más la fianza fijada por el dueño.
+
+4. **Paga de forma segura:** Serás redirigido a Stripe Checkout. Introduce los datos de tu tarjeta. El pago se procesará de forma segura. Tras el pago, verás un resumen con los detalles de tu transacción y las instrucciones de devolución.
+
+5. **Disfruta y devuelve:** Usa el objeto durante el tiempo pagado. Cuando termines:
+   1. Escanea de nuevo el código QR del objeto con tu móvil.
+   2. El sistema te mostrará la página de devolución (te reconoce automáticamente).
+   3. Deja el objeto exactamente en el lugar donde lo encontraste.
+   4. Toma una foto del objeto en su sitio original con tu cámara.
+   5. Pulsa "Confirmar devolución".
+
+6. **Valora y comparte:** Tras devolver el objeto:
+   - Si estás registrado, podrás valorar con estrellas (1–5) tanto el objeto como tu experiencia con Galizano Reusa.
+   - Podrás compartir tu experiencia en redes sociales (Twitter, Facebook, WhatsApp) con el hashtag **#GalizanoReusa**.
+   - Si eras usuario invitado, se te propondrá registrarte para no tener que pagar fianza en futuros alquileres.
+
+7. **Devolución de la fianza:** Si pagaste fianza, se te devolverá automáticamente una vez que el propietario confirme que el objeto está en buen estado. Si hay algún problema (objeto no devuelto o dañado), el propietario podrá reportar una incidencia.
+
+> 🌐 **Cambio de idioma:** El sistema está disponible en español, inglés, francés y alemán. Pulsa el icono 🌐 en la barra de navegación para cambiar de idioma en cualquier momento.

@@ -247,7 +247,39 @@
     "stripeDeposit": "Caution (remboursable) : {{title}}",
     "sale": "Achat",
     "rent_half": "Location demi-journée",
-    "rent_full": "Location journée complète"
+    "rent_full": "Location journée complète",
+    "rentalInstructions": "Instructions de retour",
+    "instruction1": "Profitez de l'objet pendant votre période de location.",
+    "instruction2": "Une fois terminé, scannez à nouveau le code QR de l'objet.",
+    "instruction3": "Laissez l'objet tel que vous l'avez trouvé.",
+    "instruction4": "Prenez une photo de l'objet et confirmez le retour.",
+    "returnBefore": "Retour avant le"
+  },
+
+  "returnFlow": {
+    "title": "Retourner l'objet",
+    "step1": "Laissez l'objet exactement comme vous l'avez trouvé.",
+    "step2": "Prenez une photo de l'objet à sa place.",
+    "photoLabel": "Photo de l'objet rendu",
+    "photoHint": "Prenez une photo montrant l'objet à son emplacement d'origine.",
+    "confirmButton": "Confirmer le retour",
+    "depositNote": "Votre caution sera automatiquement remboursée si tout est en ordre.",
+    "notFound": "Aucune location active trouvée pour cet objet.",
+    "error": "Une erreur est survenue. Veuillez réessayer.",
+    "thanksTitle": "Merci !",
+    "thanksDesc": "Vous avez rendu l'objet avec succès. Merci de contribuer à l'économie circulaire !",
+    "depositWillReturn": "sera remboursée",
+    "rateTitle": "Évaluez votre expérience",
+    "rateItem": "Comment évaluez-vous l'objet ?",
+    "rateExperience": "Comment évaluez-vous votre expérience Galizano Reusa ?",
+    "submitRating": "Envoyer l'évaluation",
+    "ratingThanks": "Merci pour votre évaluation !",
+    "alreadyRated": "Vous avez déjà évalué cette expérience.",
+    "shareTitle": "Partagez votre expérience",
+    "shareDesc": "Aidez-nous à construire un monde meilleur en partageant votre expérience.",
+    "shareText": "Je contribue à un monde meilleur avec #GalizanoReusa 🌊♻️",
+    "registerTitle": "Ça vous a plu ? Inscrivez-vous !",
+    "registerDesc": "En vous inscrivant, vous n'aurez plus à payer de caution pour vos prochaines locations."
   },
 
   "error": {
