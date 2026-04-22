@@ -7,6 +7,9 @@ interface FrankfurterHistoryResponse {
   rates: Record<string, Record<string, number>>
 }
 
+// 5 decimal places precision for forex rates (e.g. 0.00001)
+const FOREX_PRECISION_MULTIPLIER = 100_000
+
 export async function fetchForexHistory(
   base: string,
   quote: string,
@@ -20,7 +23,7 @@ export async function fetchForexHistory(
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([date, currencies]) => ({
       date,
-      rate: Math.round((currencies[quote] ?? 0) * 100000) / 100000,
+      rate: Math.round((currencies[quote] ?? 0) * FOREX_PRECISION_MULTIPLIER) / FOREX_PRECISION_MULTIPLIER,
     }))
 }
 
